@@ -1,0 +1,8 @@
+.DS_Store
+project.xcworkspace
+xcshareddata
+xcuserdata
+DerivedData
+build
+Published-iOS
+Published-Android
