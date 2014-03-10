@@ -30,13 +30,27 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 	_surface = calloc(2*_surfaceCount, sizeof(*_surface));
 	_prevSurface = _surface + _surfaceCount;
 	
-	for(int i=0; i<_surfaceCount; i++){
-		_surface[i] = 20.0f*sinf(i/10.0f);
-		_prevSurface[i] = 20.0f*sinf(i/10.0f - 0.05);
-	}
+//	for(int i=0; i<_surfaceCount; i++){
+//		_surface[i] = 20.0f*sinf(i/10.0f);
+//		_prevSurface[i] = 20.0f*sinf(i/10.0f - 0.05);
+//	}
 	
 	_drawNode = [CCDrawNode node];
 	[self addChild:_drawNode];
+	
+//	[self scheduleBlock:^(CCTimer *timer) {
+//		float center = _surfaceCount*CCRANDOM_0_1();
+//		float radius = 1.5f;
+//		
+//		for(int i=0; i<_surfaceCount; i++){
+//			float t = clampf((i - center)/radius, -1.0f, 1.0f);
+//			float f = t*t*(t*t - 2.0f) + 1.0f;
+//			
+//			_surface[i] -= 2.0f*f;
+//		}
+//		
+//		[timer repeatOnceWithInterval:5.0];
+//	} delay:1.0];
 	
 	[super onEnter];
 }
@@ -60,8 +74,10 @@ k_scalar_body(cpBody *body, cpVect point, cpVect n)
 	CCPhysicsShape *floaterShape, *waterShape;
 	[pair shapeA:&floaterShape shapeB:&waterShape];
 	
+	cpBB fluidBounds = cpShapeGetBB(waterShape.shape.shape);
+	cpFloat fluidLevel = fluidBounds.t;
+	
 	cpShape *poly = floaterShape.shape.shape;
-	cpFloat fluidLevel = cpShapeGetBB(waterShape.shape.shape).t;
 	
 	cpBody *body = cpShapeGetBody(poly);
 	
@@ -115,6 +131,35 @@ k_scalar_body(cpBody *body, cpVect point, cpVect n)
 	cpVect cog = cpBodyLocalToWorld(body, cpBodyGetCenterOfGravity(body));
 	cpFloat w_damping = cpMomentForPoly(FLUID_DRAG*FLUID_DENSITY*clippedArea, clippedCount, clipped, cpvneg(cog), 0.0f);
 	cpBodySetAngularVelocity(body, cpBodyGetAngularVelocity(body)*cpfexp(-w_damping*dt/cpBodyGetMoment(body)));
+	
+	// Disturb the water's surface.
+	cpVect left = cpv(fluidBounds.l, fluidBounds.t);
+	cpVect right = cpv(fluidBounds.r, fluidBounds.t);
+
+	cpSegmentQueryInfo infoL = {}, infoR = {};
+	if(
+		cpShapeSegmentQuery(poly, left, right, 0.0, &infoL) &&
+		cpShapeSegmentQuery(poly, right, left, 0.0, &infoR)
+	){
+		CCColor *color = [CCColor redColor];
+		[_drawNode drawDot:CPV_TO_CCP(infoL.point) radius:2.0 color:color];
+		[_drawNode drawDot:CPV_TO_CCP(infoR.point) radius:2.0 color:color];
+		
+		float nodeToIndex = (float)_surfaceCount/_contentSize.width/2.0f;
+		float center = (infoL.point.x + infoR.point.x)*nodeToIndex;
+		float radius = (infoR.point.x - infoL.point.x)*nodeToIndex;
+		float dY = dt*cpBodyGetVelocity(body).y;
+		
+		float rigidEffect = 0.05;
+		float lerpCoef = 1.0f - cpfpow(rigidEffect, dt);
+		for(int i = floorf(center - radius), imax = ceilf(center + radius); i < imax; i++){
+			float t = clampf((i - center)/radius, -1.0f, 1.0f);
+			float blend = t*t*(t*t - 2.0f) + 1.0f;
+			
+			float prevSurface = _prevSurface[i];
+			_surface[i] = cpflerp(_surface[i] - prevSurface, dY, blend*lerpCoef) + prevSurface;
+		}
+	}
 }
 
 static inline float
@@ -124,6 +169,9 @@ Diffuse(float diff, float damp, float prev, float curr, float next){
 
 -(void)fixedUpdate:(CCTime)delta
 {
+	[_drawNode clear];
+	
+	
 	float *dst = _prevSurface;
 	float *h0 = _prevSurface;
 	float *h1 = _surface;
@@ -131,6 +179,8 @@ Diffuse(float diff, float damp, float prev, float curr, float next){
 	
 	// Integrate the water surface
 	for(int i=0; i<count; i++){
+//	const float clamp = 15.0;
+//		dst[i] = cpfclamp(2.0*h1[i] - h0[i], -clamp, clamp);
 		dst[i] = 2.0*h1[i] - h0[i];
 	}
 	
@@ -172,11 +222,12 @@ Diffuse(float diff, float damp, float prev, float curr, float next){
 	
 	GLKVector3 ybasis = GLKMatrix4MultiplyVector3(*transform, GLKVector3Make(0.0, 1.0, 0.0));
 	
+	NSUInteger count = (_surfaceCount - 1);
 	float *surface = _surface;
+	
 	CCVertex verts[] = {bl, tl};
 	verts[1].position = GLKVector3Add(verts[1].position, GLKVector3MultiplyScalar(ybasis, surface[0]));
 	
-	NSUInteger count = (_surfaceCount - 1);
 	CCTriangle *triangles = [renderer enqueueTriangles:2*count withState:self.renderState];
 	for(int i=0; i<count; i++){
 		float t = (float)(i + 1)/(float)count;
@@ -186,6 +237,7 @@ Diffuse(float diff, float damp, float prev, float curr, float next){
 		
 		CCVertex b = CCVertexLerp(tl, tr, t);
 		b.position = GLKVector3Add(b.position, GLKVector3MultiplyScalar(ybasis, surface[i + 1]));
+		b.texCoord1.x += (surface[i+1] - surface[i])/100.0f;
 		triangles[2*i + 1] = (CCTriangle){verts[0], verts[1], b};
 		verts[1] = b;
 	}
