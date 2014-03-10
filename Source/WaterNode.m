@@ -1,5 +1,7 @@
 #import "WaterNode.h"
 #import "CCPhysics+ObjectiveChipmunk.h"
+#import "CCNode_Private.h"
+#import "CCSprite_Private.h"
 
 static const cpFloat FLUID_DENSITY = 1.5e-3;
 static const cpFloat FLUID_DRAG = 1.0e0;
@@ -157,74 +159,36 @@ Diffuse(float diff, float damp, float prev, float curr, float next){
 	// Swap the buffers.
 	_surface = dst;
 	_prevSurface = h1;
-	
-	// TODO Temp drawing code.
-	[_drawNode clear];
-	CCColor *color = [CCColor redColor];
-	CGSize size = self.contentSizeInPoints;
-	float coef = size.width/_surfaceCount;
-	float offset = size.height;
-	
-	for(int i=1; i<count; i++){
-		[_drawNode drawSegmentFrom:ccp((i - 1)*coef, dst[i-1] + offset) to:ccp(i*coef, dst[i] + offset) radius:1.0 color:color];
-	}
 }
 
-//-(float)dx{return _bounds.size.width/(GLfloat)(_surfaceCount - 1);}
-//
-//- (void)draw {
-//	// It would be better to run these on a fixed timestep.
-//	// As an GFX only effect it doesn't really matter though.
-//	[self vertlet];
-//	[self diffuse];
-//	
-//	GLfloat dx = [self dx];
-//	GLfloat top = _bounds.size.height;
-//	
-//	// Build a vertex array and render it.
-//	struct Vertex{GLfloat x,y;};
-//	struct Vertex verts[_count*2];
-//	for(int i=0; i<_count; i++){
-//		GLfloat x = i*dx;
-//		verts[2*i + 0] = (struct Vertex){x, 0};
-//		verts[2*i + 1] = (struct Vertex){x, top + _h2[i]};
-//	}
-//	
-//	glDisableClientState(GL_COLOR_ARRAY);
-//	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-//	
-//	glDisable(GL_TEXTURE_2D);
-//	
-//	GLfloat r = 105.0f/255.0f;
-//	GLfloat g = 193.0f/255.0f;
-//	GLfloat b = 212.0f/255.0f;
-//	GLfloat a = 0.3f;
-//	glColor4f(r*a, g*a, b*a, a);
-//	
-//	glVertexPointer(2, GL_FLOAT, 0, verts);
-//	
-//	glPushMatrix(); {
-//		glScalef(CC_CONTENT_SCALE_FACTOR(), CC_CONTENT_SCALE_FACTOR(), 1.0);
-//		glTranslatef(_bounds.origin.x, _bounds.origin.y, 0.0);
-//		
-//		glDrawArrays(GL_TRIANGLE_STRIP, 0, _count*2);
-//	} glPopMatrix();
-//	
-//	glEnableClientState(GL_COLOR_ARRAY);
-//	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-//	glEnable(GL_TEXTURE_2D);
-//	
-//	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-//}
-//
-//-(void)makeSplashAt:(float)x;
-//{
-//	// Changing the values of heightfield in h2 will make the waves move.
-//	// Here I only change one column, but you get the idea.
-//	// Change a bunch of the heights using a nice smoothing function for a better effect.
-//	
-//	int index = MAX(0, MIN((int)(x/[self dx]), _count - 1));
-//	_h2[index] += CCRANDOM_MINUS1_1()*20.0;
-//}
+-(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform
+{
+	CCVertex *spriteVerts = self.verts;
+	
+	CCVertex bl = CCVertexApplyTransform(spriteVerts[0], transform);
+	CCVertex br = CCVertexApplyTransform(spriteVerts[1], transform);
+	CCVertex tr = CCVertexApplyTransform(spriteVerts[2], transform);
+	CCVertex tl = CCVertexApplyTransform(spriteVerts[3], transform);
+	
+	GLKVector3 ybasis = GLKMatrix4MultiplyVector3(*transform, GLKVector3Make(0.0, 1.0, 0.0));
+	
+	float *surface = _surface;
+	CCVertex verts[] = {bl, tl};
+	verts[1].position = GLKVector3Add(verts[1].position, GLKVector3MultiplyScalar(ybasis, surface[0]));
+	
+	NSUInteger count = (_surfaceCount - 1);
+	CCTriangle *triangles = [renderer enqueueTriangles:2*count withState:self.renderState];
+	for(int i=0; i<count; i++){
+		float t = (float)(i + 1)/(float)count;
+		CCVertex a = CCVertexLerp(bl, br, t);
+		triangles[2*i + 0] = (CCTriangle){verts[0], verts[1], a};
+		verts[0] = a;
+		
+		CCVertex b = CCVertexLerp(tl, tr, t);
+		b.position = GLKVector3Add(b.position, GLKVector3MultiplyScalar(ybasis, surface[i + 1]));
+		triangles[2*i + 1] = (CCTriangle){verts[0], verts[1], b};
+		verts[1] = b;
+	}
+}
 
 @end
