@@ -60,23 +60,31 @@
 @end
 
 
-@protocol Occluder
+@protocol Light
+@end
 
+
+@protocol Occluder
 @property(nonatomic, readonly) CCVertex *occluderVertexes;
 @property(nonatomic, readonly) int occluderVertexCount;
-
 @end
 
 
 @interface LightingLayer : CCNode @end
 @implementation LightingLayer {
 	NSMutableArray *_occluders;
+	NSMutableArray *_lights;
+	
+	GLKMatrix4 _projection;
+	GLKMatrix4 _modelView;
+	CGAffineTransform _worldToLight;
 }
 
 -(id)init
 {
 	if((self = [super init])){
 		_occluders = [NSMutableArray array];
+		_lights = [NSMutableArray array];
 	}
 	
 	return self;
@@ -85,6 +93,16 @@
 -(LightingLayer *)lightingLayer
 {
 	return self;
+}
+
+-(void)addLight:(CCNode<Light> *)light
+{
+	[_lights addObject:light];
+}
+
+-(void)removeLight:(CCNode<Light> *)light
+{
+	[_lights removeObject:light];
 }
 
 -(void)addOccluder:(CCNode<Occluder> *)occluder
@@ -97,49 +115,59 @@
 	[_occluders removeObject:occluder];
 }
 
--(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)modelViewProjection
+-(void)maskLight:(CCNode<Light> *)light renderer:(CCRenderer *)renderer
 {
-	GLKMatrix4 projection = [CCDirector sharedDirector].projectionMatrix;
-	GLKMatrix4 projectionInv = GLKMatrix4Invert(projection, NULL);
-	GLKMatrix4 modelView = GLKMatrix4Multiply(projectionInv, *modelViewProjection);
-	
-	CGAffineTransform worldToLight = self.worldToNodeTransform;
 	CCRenderState *renderState = [CCRenderState debugColor];
 	
 	for(CCNode<Occluder> *occluder in _occluders){
 		CCVertex *verts = occluder.occluderVertexes;
 		int count = occluder.occluderVertexCount;
-		CGAffineTransform toLight = CGAffineTransformConcat(occluder.nodeToWorldTransform, worldToLight);
+		CGAffineTransform toLight = CGAffineTransformConcat(occluder.nodeToWorldTransform, _worldToLight);
 		
-		GLKMatrix4 occluderMatrix = GLKMatrix4Multiply(modelView, GLKMatrix4Make(
+		GLKMatrix4 occluderMatrix = GLKMatrix4Multiply(_modelView, GLKMatrix4Make(
 			 toLight.a,  toLight.b, 0.0f, 0.0f,
 			 toLight.c,  toLight.d, 0.0f, 0.0f,
 			      0.0f,       0.0f, 1.0f, 0.0f,
 			toLight.tx, toLight.ty, 0.0f, 1.0f
 		));
 		
-		float lx = 100.0f, ly = 100.0f;
+		CGPoint lightPosition = light.position;
+		float lx = lightPosition.x, ly = lightPosition.y;
 		GLKMatrix4 shadowMatrix = GLKMatrix4Multiply(GLKMatrix4Make(
 			1.0f, 0.0f, 0.0f,  0.0f,
 			0.0f, 1.0f, 0.0f,  0.0f,
-			 -lx,   ly, 0.0f, -1.0f,
+			 -lx,  -ly, 0.0f, -1.0f,
 			0.0f, 0.0f, 0.0f,  1.0f
 		), occluderMatrix);
 		
-		GLKMatrix4 shadowProjection = GLKMatrix4Multiply(projection, shadowMatrix);
+		GLKMatrix4 shadowProjection = GLKMatrix4Multiply(_projection, shadowMatrix);
 		
-		CCRenderBuffer debug = [renderer enqueueLines:2*count andVertexes:2*count withState:renderState];
+		CCRenderBuffer buffer = [renderer enqueueTriangles:2*count andVertexes:2*count withState:renderState];
 		
 		for(int i=0; i<count; i++){
 			CCVertex v = verts[i];
-			CCRenderBufferSetVertex(debug, 2*i + 0, CCVertexApplyTransform(v, &shadowProjection));
+			CCRenderBufferSetVertex(buffer, 2*i + 0, CCVertexApplyTransform(v, &shadowProjection));
 			
 			v.position.z = 1.0;
-			CCRenderBufferSetVertex(debug, 2*i + 1, CCVertexApplyTransform(v, &shadowProjection));
+			CCRenderBufferSetVertex(buffer, 2*i + 1, CCVertexApplyTransform(v, &shadowProjection));
 			
-			CCRenderBufferSetLine(debug, 2*i + 0, 2*i, 2*((i + 1)%count));
-			CCRenderBufferSetLine(debug, 2*i + 1, 2*i, 2*i + 1);
+			GLushort a = 2*i;
+			GLushort b = 2*(i + 1)%count;
+			CCRenderBufferSetTriangle(buffer, 2*i + 0, a + 0, a + 1, b + 0);
+			CCRenderBufferSetTriangle(buffer, 2*i + 1, a + 1, b + 0, b + 1);
 		}
+	}
+}
+
+-(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)modelViewProjection
+{
+	_projection = [CCDirector sharedDirector].projectionMatrix;
+	GLKMatrix4 projectionInv = GLKMatrix4Invert(_projection, NULL);
+	_modelView = GLKMatrix4Multiply(projectionInv, *modelViewProjection);
+	_worldToLight = self.worldToNodeTransform;
+	
+	for(CCNode<Light> *light in _lights){
+		[self maskLight:light renderer:renderer];
 	}
 }
 
@@ -173,10 +201,10 @@
 	
 	for(int i=0; i<_occluderVertexCount; i++){
 		cpVect v = [poly getVertex:i];
-		const GLKVector2 zero = {{0, 0}};
-		const GLKVector4 red = {{1, 0, 0, 1}};
+		const GLKVector2 zero2 = {{0, 0}};
+		const GLKVector4 zero4 = {{0, 0, 0, 1}};
 		
-		_occluderVertexes[i] = (CCVertex){GLKVector4Make(v.x, v.y, 0.0f, 1.0f), zero, zero, red};
+		_occluderVertexes[i] = (CCVertex){GLKVector4Make(v.x, v.y, 0.0f, 1.0f), zero2, zero2, zero4};
 	}
 }
 
@@ -195,6 +223,29 @@
 -(int)occluderVertexCount
 {
 	return _occluderVertexCount;
+}
+
+@end
+
+
+@interface AlgaeBlob : CCSprite<Light> @end
+@implementation AlgaeBlob
+
+-(void)onEnter
+{
+	CCPhysicsBody *body = self.physicsBody;
+	body.collisionType = @"floater";
+	
+	[self.lightingLayer addLight:self];
+	
+	[super onEnter];
+}
+
+-(void)onExit
+{
+	[self.lightingLayer removeLight:self];
+	
+	[super onExit];
 }
 
 @end

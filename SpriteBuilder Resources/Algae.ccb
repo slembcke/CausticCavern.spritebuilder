@@ -29,7 +29,7 @@
 		<key>children</key>
 		<array/>
 		<key>customClass</key>
-		<string></string>
+		<string>AlgaeBlob</string>
 		<key>displayName</key>
 		<string>CCSprite</string>
 		<key>memberVarAssignmentName</key>
@@ -43,26 +43,89 @@
 			<key>allowsRotation</key>
 			<true/>
 			<key>bodyShape</key>
-			<integer>1</integer>
+			<integer>0</integer>
 			<key>cornerRadius</key>
-			<real>18.416238784790039</real>
+			<real>2</real>
 			<key>density</key>
 			<real>1</real>
 			<key>dynamic</key>
 			<true/>
 			<key>elasticity</key>
-			<real>0.30000001192092896</real>
+			<real>0.0</real>
 			<key>friction</key>
-			<real>0.30000001192092896</real>
+			<real>0.80000001192092896</real>
 			<key>points</key>
 			<array>
 				<array>
-					<real>24.5</real>
-					<real>24.5</real>
+					<real>11.305543899536133</real>
+					<real>11.272574424743652</real>
+				</array>
+				<array>
+					<real>5.6023359298706055</real>
+					<real>24.44505500793457</real>
+				</array>
+				<array>
+					<real>11.443689346313477</real>
+					<real>38.621437072753906</real>
+				</array>
+				<array>
+					<real>23.926225662231445</real>
+					<real>43.393733978271484</real>
+				</array>
+				<array>
+					<real>36.853023529052734</real>
+					<real>38.385963439941406</real>
+				</array>
+				<array>
+					<real>43.120590209960938</real>
+					<real>23.328903198242188</real>
+				</array>
+				<array>
+					<real>37.874988555908203</real>
+					<real>12.023739814758301</real>
+				</array>
+				<array>
+					<real>23.532981872558594</real>
+					<real>5.9571185111999512</real>
 				</array>
 			</array>
 			<key>polygons</key>
-			<array/>
+			<array>
+				<array>
+					<array>
+						<real>23.532981872558594</real>
+						<real>5.9571185111999512</real>
+					</array>
+					<array>
+						<real>37.874988555908203</real>
+						<real>12.023739814758301</real>
+					</array>
+					<array>
+						<real>43.120590209960938</real>
+						<real>23.328903198242188</real>
+					</array>
+					<array>
+						<real>36.853023529052734</real>
+						<real>38.385963439941406</real>
+					</array>
+					<array>
+						<real>23.926225662231445</real>
+						<real>43.393733978271484</real>
+					</array>
+					<array>
+						<real>11.443689346313477</real>
+						<real>38.621437072753906</real>
+					</array>
+					<array>
+						<real>5.6023359298706055</real>
+						<real>24.44505500793457</real>
+					</array>
+					<array>
+						<real>11.305543899536133</real>
+						<real>11.272574424743652</real>
+					</array>
+				</array>
+			</array>
 		</dict>
 		<key>properties</key>
 		<array>
@@ -180,7 +243,7 @@
 			<key>offset</key>
 			<real>0.0</real>
 			<key>position</key>
-			<real>0.0</real>
+			<real>1.1000000238418579</real>
 			<key>resolution</key>
 			<real>30</real>
 			<key>scale</key>

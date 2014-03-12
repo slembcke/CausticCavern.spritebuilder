@@ -141,9 +141,9 @@ k_scalar_body(cpBody *body, cpVect point, cpVect n)
 		cpShapeSegmentQuery(poly, left, right, 0.0, &infoL) &&
 		cpShapeSegmentQuery(poly, right, left, 0.0, &infoR)
 	){
-		CCColor *color = [CCColor redColor];
-		[_drawNode drawDot:CPV_TO_CCP(infoL.point) radius:2.0 color:color];
-		[_drawNode drawDot:CPV_TO_CCP(infoR.point) radius:2.0 color:color];
+//		CCColor *color = [CCColor redColor];
+//		[_drawNode drawDot:CPV_TO_CCP(infoL.point) radius:2.0 color:color];
+//		[_drawNode drawDot:CPV_TO_CCP(infoR.point) radius:2.0 color:color];
 		
 		float nodeToIndex = (float)_surfaceCount/_contentSize.width/2.0f;
 		float center = (infoL.point.x + infoR.point.x)*nodeToIndex;
