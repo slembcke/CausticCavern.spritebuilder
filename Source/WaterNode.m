@@ -220,26 +220,30 @@ Diffuse(float diff, float damp, float prev, float curr, float next){
 	CCVertex tr = CCVertexApplyTransform(spriteVerts[2], transform);
 	CCVertex tl = CCVertexApplyTransform(spriteVerts[3], transform);
 	
-	GLKVector3 ybasis = GLKMatrix4MultiplyVector3(*transform, GLKVector3Make(0.0, 1.0, 0.0));
+	GLKVector4 ybasis = GLKMatrix4MultiplyVector4(*transform, GLKVector4Make(0.0, 1.0, 0.0, 0.0));
 	
 	NSUInteger count = (_surfaceCount - 1);
 	float *surface = _surface;
 	
-	CCVertex verts[] = {bl, tl};
-	verts[1].position = GLKVector3Add(verts[1].position, GLKVector3MultiplyScalar(ybasis, surface[0]));
+	CCRenderBuffer buffer =[renderer enqueueTriangles:2*count andVertexes:2*_surfaceCount withState:self.renderState];
+	CCRenderBufferSetVertex(buffer, 0, bl);
 	
-	CCTriangle *triangles = [renderer enqueueTriangles:2*count withState:self.renderState];
+	CCVertex v1 = tl;
+	v1.position = GLKVector4Add(v1.position, GLKVector4MultiplyScalar(ybasis, surface[0]));
+	CCRenderBufferSetVertex(buffer, 1, v1);
+	
+	
 	for(int i=0; i<count; i++){
 		float t = (float)(i + 1)/(float)count;
-		CCVertex a = CCVertexLerp(bl, br, t);
-		triangles[2*i + 0] = (CCTriangle){verts[0], verts[1], a};
-		verts[0] = a;
+		CCRenderBufferSetVertex(buffer, 2*i + 2, CCVertexLerp(bl, br, t));
 		
 		CCVertex b = CCVertexLerp(tl, tr, t);
-		b.position = GLKVector3Add(b.position, GLKVector3MultiplyScalar(ybasis, surface[i + 1]));
+		b.position = GLKVector4Add(b.position, GLKVector4MultiplyScalar(ybasis, surface[i + 1]));
 		b.texCoord1.x += (surface[i+1] - surface[i])/100.0f;
-		triangles[2*i + 1] = (CCTriangle){verts[0], verts[1], b};
-		verts[1] = b;
+		CCRenderBufferSetVertex(buffer, 2*i + 3, b);
+		
+		CCRenderBufferSetTriangle(buffer, 2*i + 0, 2*i + 0, 2*i + 1, 2*i + 2);
+		CCRenderBufferSetTriangle(buffer, 2*i + 1, 2*i + 1, 2*i + 2, 2*i + 3);
 	}
 }
 
