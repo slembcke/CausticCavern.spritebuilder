@@ -30,27 +30,8 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 	_surface = calloc(2*_surfaceCount, sizeof(*_surface));
 	_prevSurface = _surface + _surfaceCount;
 	
-//	for(int i=0; i<_surfaceCount; i++){
-//		_surface[i] = 20.0f*sinf(i/10.0f);
-//		_prevSurface[i] = 20.0f*sinf(i/10.0f - 0.05);
-//	}
-	
 	_drawNode = [CCDrawNode node];
 	[self addChild:_drawNode];
-	
-//	[self scheduleBlock:^(CCTimer *timer) {
-//		float center = _surfaceCount*CCRANDOM_0_1();
-//		float radius = 1.5f;
-//		
-//		for(int i=0; i<_surfaceCount; i++){
-//			float t = clampf((i - center)/radius, -1.0f, 1.0f);
-//			float f = t*t*(t*t - 2.0f) + 1.0f;
-//			
-//			_surface[i] -= 2.0f*f;
-//		}
-//		
-//		[timer repeatOnceWithInterval:5.0];
-//	} delay:1.0];
 	
 	[super onEnter];
 }

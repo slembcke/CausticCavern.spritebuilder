@@ -7,6 +7,7 @@
 //
 
 #import "CCPhysics+ObjectiveChipmunk.h"
+#import "CCTexture_Private.h"
 
 #import "MainScene.h"
 #import "WaterNode.h"
@@ -61,6 +62,8 @@
 
 
 @protocol Light
+@property(nonatomic, readonly) float lightRadius;
+@property(nonatomic, readonly) GLKVector4 lightColor;
 @end
 
 
@@ -78,6 +81,9 @@
 	GLKMatrix4 _projection;
 	GLKMatrix4 _modelView;
 	CGAffineTransform _worldToLight;
+	
+	CCRenderTexture *_renderTexture;
+	CCRenderState *_lightRenderState;
 }
 
 -(id)init
@@ -85,9 +91,34 @@
 	if((self = [super init])){
 		_occluders = [NSMutableArray array];
 		_lights = [NSMutableArray array];
+		
+		CCBlendMode *blend = [CCBlendMode addMode];
+		CCShader *shader = [[CCShader alloc] initWithFragmentShaderSource:CC_GLSL(
+			void main(){
+				gl_FragColor = (1.0 - length(cc_FragTexCoord1))*cc_FragColor;
+			}
+		)];
+		_lightRenderState = [CCRenderState renderStateWithBlendMode:blend shader:shader mainTexture:CCTextureNone];
 	}
 	
 	return self;
+}
+
+-(void)onEnter
+{
+	// TODO Could cut down on fillrate a little by using a screen sized texture.
+	CGSize size = [CCDirector sharedDirector].designSize;
+	_renderTexture = [CCRenderTexture renderTextureWithWidth:size.width height:size.height];
+//	_renderTexture.position = ccp(100, 100);
+	
+	CCSprite *rtSprite = _renderTexture.sprite;
+	rtSprite.anchorPoint = CGPointZero;
+//	rtSprite.scale = 0.15;
+	rtSprite.blendMode = [CCBlendMode multiplyMode];
+	
+	[self addChild:_renderTexture z:NSIntegerMax];
+	
+	[super onEnter];
 }
 
 -(LightingLayer *)lightingLayer
@@ -159,16 +190,48 @@
 	}
 }
 
--(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)modelViewProjection
+static inline CCVertex
+LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector4 color4)
+{
+	const GLKVector2 zero2 = {{0.0f, 0.0f}};
+	return (CCVertex){GLKMatrix4MultiplyVector4(transform, GLKVector4Make(pos.x, pos.y, 0.0f, 1.0f)), texCoord, zero2, color4};
+}
+
+-(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)mvp
 {
 	_projection = [CCDirector sharedDirector].projectionMatrix;
 	GLKMatrix4 projectionInv = GLKMatrix4Invert(_projection, NULL);
-	_modelView = GLKMatrix4Multiply(projectionInv, *modelViewProjection);
+	_modelView = GLKMatrix4Multiply(projectionInv, *mvp);
 	_worldToLight = self.worldToNodeTransform;
 	
+/*
+Possible fillrate reduction methods if needed:
+* Half-res render buffer.
+* Backface culling.
+* Scissoring.
+*/
+	
+	[_renderTexture beginWithClear:0.1 g:0.1 b:0.1 a:0];
+	GLKMatrix4 _rtProjection = _renderTexture.projection;
+	
 	for(CCNode<Light> *light in _lights){
-		[self maskLight:light renderer:renderer];
+		// TODO set color mask
+//			[self maskLight:light renderer:renderer];
+		
+		CGPoint pos = light.position;
+		float radius = light.lightRadius;
+		GLKVector4 color4 = light.lightColor;
+		
+		CCRenderBuffer buffer = [renderer enqueueTriangles:2 andVertexes:4 withState:_lightRenderState];
+		CCRenderBufferSetVertex(buffer, 0, LightVertex(_rtProjection, GLKVector2Make(pos.x - radius, pos.y - radius), GLKVector2Make(-1, -1), color4));
+		CCRenderBufferSetVertex(buffer, 1, LightVertex(_rtProjection, GLKVector2Make(pos.x - radius, pos.y + radius), GLKVector2Make(-1,  1), color4));
+		CCRenderBufferSetVertex(buffer, 2, LightVertex(_rtProjection, GLKVector2Make(pos.x + radius, pos.y + radius), GLKVector2Make( 1,  1), color4));
+		CCRenderBufferSetVertex(buffer, 3, LightVertex(_rtProjection, GLKVector2Make(pos.x + radius, pos.y - radius), GLKVector2Make( 1, -1), color4));
+		CCRenderBufferSetTriangle(buffer, 0, 0, 1, 2);
+		CCRenderBufferSetTriangle(buffer, 1, 0, 2, 3);
 	}
+	
+	[_renderTexture end];
 }
 
 @end
@@ -246,6 +309,16 @@
 	[self.lightingLayer removeLight:self];
 	
 	[super onExit];
+}
+
+-(float)lightRadius
+{
+	return 150.0;
+}
+
+-(GLKVector4)lightColor
+{
+	return GLKVector4Make(0.5, 1, 0.5, 1);
 }
 
 @end
