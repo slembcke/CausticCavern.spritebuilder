@@ -8,6 +8,7 @@
 
 #import "CCPhysics+ObjectiveChipmunk.h"
 #import "CCTexture_Private.h"
+#import "CCTextureCache.h"
 
 #import "MainScene.h"
 #import "WaterNode.h"
@@ -96,13 +97,8 @@
 			CCBlendFuncDstColor: @(GL_ONE),
 		}];
 		
-		CCShader *lightShader = [[CCShader alloc] initWithFragmentShaderSource:CC_GLSL(
-			void main(){
-				gl_FragColor = (1.0 - length(cc_FragTexCoord1))*cc_FragColor;
-			}
-		)];
-		
-		_lightRenderState = [CCRenderState renderStateWithBlendMode:lightBlend shader:lightShader mainTexture:nil];
+		CCTexture *lightTexture = [[CCTextureCache sharedTextureCache] addImage:@"LightAttenuation.psd"];
+		_lightRenderState = [CCRenderState renderStateWithBlendMode:lightBlend shader:[CCShader positionTextureColorShader] mainTexture:lightTexture];
 	}
 	
 	return self;
@@ -232,10 +228,10 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 			GLKVector4 color4 = light.lightColor;
 			
 			CCRenderBuffer buffer = [renderer enqueueTriangles:2 andVertexes:4 withState:_lightRenderState];
-			CCRenderBufferSetVertex(buffer, 0, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y - radius), GLKVector2Make(-1, -1), color4));
-			CCRenderBufferSetVertex(buffer, 1, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y + radius), GLKVector2Make(-1,  1), color4));
-			CCRenderBufferSetVertex(buffer, 2, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y + radius), GLKVector2Make( 1,  1), color4));
-			CCRenderBufferSetVertex(buffer, 3, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y - radius), GLKVector2Make( 1, -1), color4));
+			CCRenderBufferSetVertex(buffer, 0, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y - radius), GLKVector2Make(0, 0), color4));
+			CCRenderBufferSetVertex(buffer, 1, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y + radius), GLKVector2Make(0, 1), color4));
+			CCRenderBufferSetVertex(buffer, 2, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y + radius), GLKVector2Make(1, 1), color4));
+			CCRenderBufferSetVertex(buffer, 3, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y - radius), GLKVector2Make(1, 0), color4));
 			CCRenderBufferSetTriangle(buffer, 0, 0, 1, 2);
 			CCRenderBufferSetTriangle(buffer, 1, 0, 2, 3);
 		}
