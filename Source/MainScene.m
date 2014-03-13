@@ -89,6 +89,8 @@
 		_occluders = [NSMutableArray array];
 		_lights = [NSMutableArray array];
 		
+		_shadowRenderState = [CCRenderState renderStateWithBlendMode:[CCBlendMode disabledMode] shader:[CCShader positionColorShader] mainTexture:nil];
+		
 		CCBlendMode *lightBlend = [CCBlendMode blendModeWithOptions:@{
 			CCBlendFuncSrcColor: @(GL_ONE_MINUS_DST_ALPHA),
 			CCBlendFuncDstColor: @(GL_ONE),
@@ -100,7 +102,7 @@
 			}
 		)];
 		
-		_lightRenderState = [CCRenderState renderStateWithBlendMode:lightBlend shader:lightShader mainTexture:CCTextureNone];
+		_lightRenderState = [CCRenderState renderStateWithBlendMode:lightBlend shader:lightShader mainTexture:nil];
 	}
 	
 	return self;
@@ -111,14 +113,14 @@
 	// TODO Could cut down on fillrate a little by using a screen sized texture.
 	CGSize size = [CCDirector sharedDirector].designSize;
 	_lightMapBuffer = [CCRenderTexture renderTextureWithWidth:size.width height:size.height];
-//	_renderTexture.position = ccp(100, 100);
+	_lightMapBuffer.contentScale /= 2;
+	[_lightMapBuffer.texture setAntiAliasTexParameters];
 	
 	CCSprite *rtSprite = _lightMapBuffer.sprite;
 	rtSprite.anchorPoint = CGPointZero;
-//	rtSprite.scale = 0.15;
 	rtSprite.blendMode = [CCBlendMode multiplyMode];
 	
-	[self addChild:_lightMapBuffer z:NSIntegerMax];
+	[self addChild:_lightMapBuffer z:-100];
 	
 	[super onEnter];
 }
@@ -150,8 +152,6 @@
 
 -(void)maskLight:(CCNode<Light> *)light renderer:(CCRenderer *)renderer worldToLight:(CGAffineTransform)worldToLight projection:(GLKMatrix4)projection
 {
-	CCRenderState *renderState = [CCRenderState debugColor];
-	
 	for(CCNode<Occluder> *occluder in _occluders){
 		CCVertex *verts = occluder.occluderVertexes;
 		int count = occluder.occluderVertexCount;
@@ -175,7 +175,7 @@
 		
 		GLKMatrix4 shadowProjection = GLKMatrix4Multiply(projection, shadowMatrix);
 		
-		CCRenderBuffer buffer = [renderer enqueueTriangles:2*count andVertexes:2*count withState:renderState];
+		CCRenderBuffer buffer = [renderer enqueueTriangles:2*count andVertexes:2*count withState:_shadowRenderState];
 		
 		for(int i=0, j=count-1; i<count; j=i, i++){
 			CCVertex v = verts[i];
@@ -197,7 +197,7 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 	return (CCVertex){GLKMatrix4MultiplyVector4(transform, GLKVector4Make(pos.x, pos.y, 0.0f, 1.0f)), texCoord, zero2, color4};
 }
 
--(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)mvp
+-(void)visit:(CCRenderer *)renderer parentTransform:(const GLKMatrix4 *)parentTransform
 {
 /*
 Possible fillrate reduction methods if needed:
@@ -209,7 +209,7 @@ Possible fillrate reduction methods if needed:
 	CGAffineTransform worldToLight = self.worldToNodeTransform;
 	GLKMatrix4 projection = _lightMapBuffer.projection;
 	
-	float ambient = 0.1;
+	float ambient = 0.3;
 	[_lightMapBuffer beginWithClear:ambient g:ambient b:ambient a:0];
 	
 	for(CCNode<Light> *light in _lights){
@@ -219,8 +219,10 @@ Possible fillrate reduction methods if needed:
 			
 			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 			
-//			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		}];
+#warning TODO renderer should have a clear command.
+			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+		} debugLabel:@"LightingLayer: Set shadow mask drawing mode."];
 		
 		[self maskLight:light renderer:renderer worldToLight:worldToLight projection:projection];
 		
@@ -228,7 +230,7 @@ Possible fillrate reduction methods if needed:
 			glDisable(GL_CULL_FACE);
 			
 			glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		}];
+		} debugLabel:@"LightingLayer: Restore mode."];
 		
 		CGPoint pos = light.position;
 		float radius = light.lightRadius;
@@ -244,6 +246,8 @@ Possible fillrate reduction methods if needed:
 	}
 	
 	[_lightMapBuffer end];
+	
+	[super visit:renderer parentTransform:parentTransform];
 }
 
 @end
@@ -325,7 +329,7 @@ Possible fillrate reduction methods if needed:
 
 -(float)lightRadius
 {
-	return 150.0;
+	return 250.0;
 }
 
 -(GLKVector4)lightColor

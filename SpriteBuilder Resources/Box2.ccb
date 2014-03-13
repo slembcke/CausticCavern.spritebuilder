@@ -17,7 +17,26 @@
 	<key>fileVersion</key>
 	<integer>4</integer>
 	<key>guides</key>
-	<array/>
+	<array>
+		<dict>
+			<key>orientation</key>
+			<integer>1</integer>
+			<key>position</key>
+			<real>-68</real>
+		</dict>
+		<dict>
+			<key>orientation</key>
+			<integer>1</integer>
+			<key>position</key>
+			<real>-79</real>
+		</dict>
+		<dict>
+			<key>orientation</key>
+			<integer>1</integer>
+			<key>position</key>
+			<real>-57</real>
+		</dict>
+	</array>
 	<key>joints</key>
 	<array/>
 	<key>jsControlled</key>
@@ -57,40 +76,40 @@
 			<key>points</key>
 			<array>
 				<array>
-					<real>5.5557670593261719</real>
-					<real>5.0159339904785156</real>
+					<real>6.0031695365905762</real>
+					<real>5.3534483909606934</real>
 				</array>
 				<array>
 					<real>5.5184831619262695</real>
 					<real>50.561405181884766</real>
 				</array>
 				<array>
-					<real>144.52011108398438</real>
-					<real>51.807460784912109</real>
+					<real>143.81434631347656</real>
+					<real>50.677833557128906</real>
 				</array>
 				<array>
-					<real>143.97459411621094</real>
-					<real>7.0501775741577148</real>
+					<real>143.39114379882812</real>
+					<real>7.5093541145324707</real>
 				</array>
 			</array>
 			<key>polygons</key>
 			<array>
 				<array>
 					<array>
-						<real>143.97459411621094</real>
-						<real>7.0501775741577148</real>
+						<real>143.39114379882812</real>
+						<real>7.5093541145324707</real>
 					</array>
 					<array>
-						<real>144.52011108398438</real>
-						<real>51.807460784912109</real>
+						<real>143.81434631347656</real>
+						<real>50.677833557128906</real>
 					</array>
 					<array>
 						<real>5.5184831619262695</real>
 						<real>50.561405181884766</real>
 					</array>
 					<array>
-						<real>5.5557670593261719</real>
-						<real>5.0159339904785156</real>
+						<real>6.0031695365905762</real>
+						<real>5.3534483909606934</real>
 					</array>
 				</array>
 			</array>
