@@ -684,8 +684,6 @@
 										</array>
 									</dict>
 								</array>
-								<key>selected</key>
-								<true/>
 							</dict>
 						</array>
 						<key>customClass</key>
@@ -784,9 +782,9 @@
 				<key>displayName</key>
 				<string>LightingLayer</string>
 				<key>memberVarAssignmentName</key>
-				<string></string>
+				<string>_lightingLayer</string>
 				<key>memberVarAssignmentType</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>properties</key>
 				<array>
 					<dict>
@@ -849,6 +847,8 @@
 						</array>
 					</dict>
 				</array>
+				<key>selected</key>
+				<true/>
 			</dict>
 			<dict>
 				<key>UUID</key>

@@ -36,6 +36,7 @@
 		B77F1B4017B978D7009739AE /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B77F1B3F17B978D7009739AE /* CoreGraphics.framework */; };
 		B77F1B4217B978D7009739AE /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B77F1B4117B978D7009739AE /* CoreText.framework */; };
 		D32D377118CD8D8E0044D797 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D32D377018CD8D8E0044D797 /* GLKit.framework */; };
+		D3641B4818D2683300B5FB1A /* LightingLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D3641B4718D2683300B5FB1A /* LightingLayer.m */; };
 		D3C9935918CD159700B788F6 /* CCPhysicsTouchNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C9935818CD159700B788F6 /* CCPhysicsTouchNode.m */; };
 		D3C9935D18CD298000B788F6 /* WaterNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C9935C18CD298000B788F6 /* WaterNode.m */; };
 /* End PBXBuildFile section */
@@ -92,6 +93,8 @@
 		B77F1B4117B978D7009739AE /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		B7B3713D180358F1007369CC /* libObjectiveChipmunk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libObjectiveChipmunk.a; path = "../libs/cocos2d-iphone/external/Chipmunk/xcode/build/Debug-iphoneos/libObjectiveChipmunk.a"; sourceTree = "<group>"; };
 		D32D377018CD8D8E0044D797 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		D3641B4618D2683300B5FB1A /* LightingLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LightingLayer.h; sourceTree = "<group>"; };
+		D3641B4718D2683300B5FB1A /* LightingLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LightingLayer.m; sourceTree = "<group>"; };
 		D3C9935718CD159700B788F6 /* CCPhysicsTouchNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CCPhysicsTouchNode.h; path = Source/CCPhysicsTouchNode.h; sourceTree = "<group>"; };
 		D3C9935818CD159700B788F6 /* CCPhysicsTouchNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CCPhysicsTouchNode.m; path = Source/CCPhysicsTouchNode.m; sourceTree = "<group>"; };
 		D3C9935B18CD298000B788F6 /* WaterNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WaterNode.h; path = Source/WaterNode.h; sourceTree = "<group>"; };
@@ -139,6 +142,8 @@
 				D3C9935818CD159700B788F6 /* CCPhysicsTouchNode.m */,
 				D3C9935B18CD298000B788F6 /* WaterNode.h */,
 				D3C9935C18CD298000B788F6 /* WaterNode.m */,
+				D3641B4618D2683300B5FB1A /* LightingLayer.h */,
+				D3641B4718D2683300B5FB1A /* LightingLayer.m */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -337,6 +342,7 @@
 				B737893F1807617C0076A88C /* AppDelegate.m in Sources */,
 				B7378994180767190076A88C /* MainScene.m in Sources */,
 				B73789871807631A0076A88C /* main.m in Sources */,
+				D3641B4818D2683300B5FB1A /* LightingLayer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
