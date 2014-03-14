@@ -77,7 +77,7 @@
 	for(int i=0; i<_occluderVertexCount; i++){
 		cpVect v = [poly getVertex:i];
 		const GLKVector2 zero2 = {{0, 0}};
-		const GLKVector4 zero4 = {{0, 0, 0, 1}};
+		const GLKVector4 zero4 = {{0, 0, 0, 0}};
 		
 		_occluderVertexes[i] = (CCVertex){GLKVector4Make(v.x, v.y, 0.0f, 1.0f), zero2, zero2, zero4};
 	}

@@ -31,10 +31,10 @@
 		_occluders = [NSMutableArray array];
 		_lights = [NSMutableArray array];
 		
-		_shadowRenderState = [CCRenderState renderStateWithBlendMode:[CCBlendMode disabledMode] shader:[CCShader positionColorShader] mainTexture:nil];
+		_shadowRenderState = [CCRenderState renderStateWithBlendMode:[CCBlendMode disabledMode] shader:[CCShader positionColorShader] mainTexture:[CCTexture none]];
 		
 		CCBlendMode *lightBlend = [CCBlendMode blendModeWithOptions:@{
-			CCBlendFuncSrcColor: @(GL_ONE_MINUS_DST_ALPHA),
+			CCBlendFuncSrcColor: @(GL_DST_ALPHA),
 			CCBlendFuncDstColor: @(GL_ONE),
 		}];
 		
@@ -60,7 +60,7 @@
 	rtSprite.anchorPoint = CGPointZero;
 	rtSprite.blendMode = [CCBlendMode multiplyMode];
 	
-	[self addChild:_lightMapBuffer z:-100];
+	[self addChild:_lightMapBuffer z:NSIntegerMax];
 	
 	[super onEnter];
 }
@@ -137,15 +137,13 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 	return (CCVertex){GLKMatrix4MultiplyVector4(transform, GLKVector4Make(pos.x, pos.y, 0.0f, 1.0f)), texCoord, zero2, color4};
 }
 
--(void)update:(CCTime)delta
+-(void)visit:(CCRenderer *)renderer parentTransform:(const GLKMatrix4 *)parentTransform
 {
 	CGAffineTransform worldToLight = self.worldToNodeTransform;
 	GLKMatrix4 projection = _lightMapBuffer.projection;
 	
 	float ambient = 0.3;
-	[_lightMapBuffer beginWithClear:ambient g:ambient b:ambient a:0];
-		CCRenderer *renderer = [CCRenderer currentRenderer];
-		
+	[_lightMapBuffer beginWithClear:ambient g:ambient b:ambient a:1.0f];
 		for(CCNode<Light> *light in _lights){
 			CGPoint pos = light.position;
 			float radius = light.lightRadius;
@@ -156,17 +154,22 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 //				glEnable(GL_SCISSOR_TEST);
 //				glScissor(0, 0, 200, 200);
 				
-				// Disable drawing the back faces to cut down on fillrate.
-				glEnable(GL_CULL_FACE);
-				glCullFace(GL_BACK);
+				// Disable drawing the front faces to cut down on fillrate.
+//				glEnable(GL_CULL_FACE);
+				glCullFace(GL_FRONT);
 				
 				// The shadow mask should only affect the alpha chanel.
 				glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 			} debugLabel:@"LightingLayer: Set shadow mask drawing mode."];
 			
 			// Clear the alpha and draw the shadow mask.
-			[renderer enqueueClear:GL_COLOR_BUFFER_BIT color:GLKVector4Make(0.0f, 0.0f, 0.0f, 0.0f) depth:0.0f stencil:0];
+			[renderer enqueueClear:GL_COLOR_BUFFER_BIT color:GLKVector4Make(0.0f, 0.0f, 0.0f, 1.0f) depth:0.0f stencil:0];
 			[self maskLight:light renderer:renderer worldToLight:worldToLight projection:projection];
+			
+			// This is kind of a nasty hack...
+			for(CCNode *occluder in _occluders){
+				[occluder visit:renderer parentTransform:&projection];
+			}
 			
 			// Reset culling and color masking.
 			[renderer enqueueBlock:^{
@@ -185,6 +188,8 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 			CCRenderBufferSetTriangle(buffer, 1, 0, 2, 3);
 		}
 	[_lightMapBuffer end];
+	
+	[super visit:renderer parentTransform:parentTransform];
 }
 
 @end
