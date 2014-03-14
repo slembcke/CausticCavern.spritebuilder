@@ -2,6 +2,9 @@
 #import "CCPhysics+ObjectiveChipmunk.h"
 #import "CCNode_Private.h"
 #import "CCSprite_Private.h"
+#import "CCTexture_Private.h"
+#import "CCTextureCache.h"
+#import "CCDirector_Private.h"
 
 static const cpFloat FLUID_DENSITY = 1.5e-3;
 static const cpFloat FLUID_DRAG = 1.0e0;
@@ -14,8 +17,6 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 	
 	// Current and previous water surface height samples.
 	float *_surface, *_prevSurface;
-	
-	CCDrawNode *_drawNode;
 }
 
 -(void)onEnter
@@ -30,8 +31,59 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 	_surface = calloc(2*_surfaceCount, sizeof(*_surface));
 	_prevSurface = _surface + _surfaceCount;
 	
-	_drawNode = [CCDrawNode node];
-	[self addChild:_drawNode];
+	// Set up a matrix to convert from vertex positions to texture coordinates for the refraction.
+	CGRect viewport = [CCDirector sharedDirector].viewportRect;
+	CGSize designSize = [CCDirector sharedDirector].designSize;
+	self.shaderUniforms[@"texMatrix"] = [NSValue valueWithGLKMatrix4:GLKMatrix4Invert(GLKMatrix4MakeOrtho(
+		CGRectGetMinX(viewport)/designSize.width,
+		CGRectGetMaxX(viewport)/designSize.width,
+		CGRectGetMaxY(viewport)/designSize.height,
+		CGRectGetMinY(viewport)/designSize.height,
+		-1.0f, 1.0f
+	), NULL)];
+	
+	// Set the cave background texture.
+	self.shaderUniforms[@"refractedBackground"] = [[CCTextureCache sharedTextureCache] addImage:@"CaveBackground.psd"];
+	
+	CCTexture *noise = [[CCTextureCache sharedTextureCache] addImage:@"Noise.psd"];
+	noise.texParameters = &((ccTexParams){GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT});
+	
+	self.shaderUniforms[@"noise"] = noise;
+	self.shaderUniforms[@"noiseSize"] = [NSValue valueWithCGSize:CC_SIZE_SCALE(noise.contentSize, 4.0)];
+	
+	self.shader = [[CCShader alloc] initWithVertexShaderSource:CC_GLSL(
+		uniform mat4 texMatrix;
+		uniform vec2 noiseSize;
+		
+		varying vec2 bgTexCoords;
+		varying vec2 noiseCoords;
+		
+		void main(){
+			gl_Position = cc_Position;
+			cc_FragTexCoord1 = cc_TexCoord1;
+			bgTexCoords = (texMatrix*cc_Position).xy;
+			
+			vec2 offset = vec2(50.0*cc_Time[0], 50.0*cc_SinTime[1]);
+			noiseCoords = ((cc_ProjectionInv*cc_Position).xy + offset)/noiseSize;
+			
+			cc_FragColor = cc_Color;
+		}
+	) fragmentShaderSource:CC_GLSL(
+		uniform sampler2D noise;
+		uniform sampler2D refractedBackground;
+		
+		varying vec2 bgTexCoords;
+		varying vec2 noiseCoords;
+		
+		void main(){
+			vec4 water = texture2D(cc_MainTexture, cc_FragTexCoord1);
+			
+			mediump vec2 offset = 2.0*texture2D(noise, noiseCoords).xy - 1.0;
+			vec4 bg = texture2D(refractedBackground, bgTexCoords + 0.020*offset);
+			
+			gl_FragColor = vec4(mix(bg, water, 0.75).rgb, water.a)*cc_FragColor;
+		}
+	)];
 	
 	[super onEnter];
 }
@@ -122,10 +174,6 @@ k_scalar_body(cpBody *body, cpVect point, cpVect n)
 		cpShapeSegmentQuery(poly, left, right, 0.0, &infoL) &&
 		cpShapeSegmentQuery(poly, right, left, 0.0, &infoR)
 	){
-//		CCColor *color = [CCColor redColor];
-//		[_drawNode drawDot:CPV_TO_CCP(infoL.point) radius:2.0 color:color];
-//		[_drawNode drawDot:CPV_TO_CCP(infoR.point) radius:2.0 color:color];
-		
 		float nodeToIndex = (float)_surfaceCount/_contentSize.width/2.0f;
 		float center = (infoL.point.x + infoR.point.x)*nodeToIndex;
 		float radius = (infoR.point.x - infoL.point.x)*nodeToIndex;
@@ -150,9 +198,6 @@ Diffuse(float diff, float damp, float prev, float curr, float next){
 
 -(void)fixedUpdate:(CCTime)delta
 {
-	[_drawNode clear];
-	
-	
 	float *dst = _prevSurface;
 	float *h0 = _prevSurface;
 	float *h1 = _surface;
