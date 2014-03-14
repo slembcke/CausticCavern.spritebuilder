@@ -42,9 +42,9 @@
 				<key>displayName</key>
 				<string>CaveBackground</string>
 				<key>memberVarAssignmentName</key>
-				<string></string>
+				<string>_backgroundSprite</string>
 				<key>memberVarAssignmentType</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>properties</key>
 				<array>
 					<dict>
@@ -118,6 +118,8 @@
 						</array>
 					</dict>
 				</array>
+				<key>selected</key>
+				<true/>
 			</dict>
 			<dict>
 				<key>UUID</key>
@@ -847,8 +849,6 @@
 						</array>
 					</dict>
 				</array>
-				<key>selected</key>
-				<true/>
 			</dict>
 			<dict>
 				<key>UUID</key>

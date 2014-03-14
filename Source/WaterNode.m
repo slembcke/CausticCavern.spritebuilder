@@ -63,7 +63,7 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 			cc_FragTexCoord1 = cc_TexCoord1;
 			cc_FragColor = cc_Color;
 			
-			vec2 offset = vec2(50.0*cc_Time[0], 50.0*cc_SinTime[1]);
+			vec2 offset = mod(vec2(50.0*cc_Time[0], 50.0*cc_SinTime[1]), noiseSize);
 			noiseCoords = ((cc_ProjectionInv*cc_Position).xy + offset)/noiseSize;
 			
 			bgTexCoords = (texMatrix*cc_Position).xy;
