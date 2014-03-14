@@ -55,25 +55,25 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 		uniform mat4 texMatrix;
 		uniform vec2 noiseSize;
 		
-		varying vec2 bgTexCoords;
 		varying vec2 noiseCoords;
+		varying vec2 bgTexCoords;
 		
 		void main(){
 			gl_Position = cc_Position;
 			cc_FragTexCoord1 = cc_TexCoord1;
-			bgTexCoords = (texMatrix*cc_Position).xy;
+			cc_FragColor = cc_Color;
 			
 			vec2 offset = vec2(50.0*cc_Time[0], 50.0*cc_SinTime[1]);
 			noiseCoords = ((cc_ProjectionInv*cc_Position).xy + offset)/noiseSize;
 			
-			cc_FragColor = cc_Color;
+			bgTexCoords = (texMatrix*cc_Position).xy;
 		}
 	) fragmentShaderSource:CC_GLSL(
 		uniform sampler2D noise;
 		uniform sampler2D refractedBackground;
 		
-		varying vec2 bgTexCoords;
-		varying vec2 noiseCoords;
+		varying highp vec2 noiseCoords;
+		varying highp vec2 bgTexCoords;
 		
 		void main(){
 			vec4 water = texture2D(cc_MainTexture, cc_FragTexCoord1);
@@ -81,7 +81,7 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 			mediump vec2 offset = 2.0*texture2D(noise, noiseCoords).xy - 1.0;
 			vec4 bg = texture2D(refractedBackground, bgTexCoords + 0.020*offset);
 			
-			gl_FragColor = vec4(mix(bg, water, 0.75).rgb, water.a)*cc_FragColor;
+			gl_FragColor = vec4(mix(bg, water, 0.85).rgb, water.a)*cc_FragColor;
 		}
 	)];
 	
