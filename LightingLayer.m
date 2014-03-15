@@ -48,17 +48,19 @@
 -(void)onEnter
 {
 	CGRect viewport = [CCDirector sharedDirector].viewportRect;
-	_lightMapBuffer = [CCRenderTexture renderTextureWithWidth:viewport.size.width height:viewport.size.height];
+	_lightMapBuffer = [CCRenderTexture renderTextureWithWidth:ceilf(viewport.size.width) height:ceilf(viewport.size.height)];
 	_lightMapBuffer.position = viewport.origin;
 	_lightMapBuffer.contentScale /= 2;
 	[_lightMapBuffer.texture setAntiAliasTexParameters];
 	
 	_lightMapBuffer.projection = GLKMatrix4MakeOrtho(CGRectGetMinX(viewport), CGRectGetMaxX(viewport), CGRectGetMaxY(viewport), CGRectGetMinY(viewport), -1024, 1024);
 	
-	
 	CCSprite *rtSprite = _lightMapBuffer.sprite;
 	rtSprite.anchorPoint = CGPointZero;
-	rtSprite.blendMode = [CCBlendMode multiplyMode];
+	rtSprite.blendMode = [CCBlendMode blendModeWithOptions:@{
+		CCBlendFuncSrcColor: @(GL_DST_COLOR),
+		CCBlendFuncDstColor: @(GL_SRC_COLOR),
+	}];
 	
 	[self addChild:_lightMapBuffer z:NSIntegerMax];
 	
@@ -142,20 +144,16 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 	CGAffineTransform worldToLight = self.worldToNodeTransform;
 	GLKMatrix4 projection = _lightMapBuffer.projection;
 	
-	float ambient = 0.3;
+	float ambient = 0.2*0.5;
 	[_lightMapBuffer beginWithClear:ambient g:ambient b:ambient a:1.0f];
 		for(CCNode<Light> *light in _lights){
 			CGPoint pos = light.position;
 			float radius = light.lightRadius;
-			GLKVector4 color4 = light.lightColor;
+			GLKVector4 color4 = GLKVector4MultiplyScalar(light.lightColor, 0.5);
 			
 			[renderer enqueueBlock:^{
-				// TODO
-//				glEnable(GL_SCISSOR_TEST);
-//				glScissor(0, 0, 200, 200);
-				
 				// Disable drawing the front faces to cut down on fillrate.
-//				glEnable(GL_CULL_FACE);
+				glEnable(GL_CULL_FACE);
 				glCullFace(GL_FRONT);
 				
 				// The shadow mask should only affect the alpha chanel.
@@ -173,7 +171,6 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 			
 			// Reset culling and color masking.
 			[renderer enqueueBlock:^{
-//				glDisable(GL_SCISSOR_TEST);
 				glDisable(GL_CULL_FACE);
 				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 			} debugLabel:@"LightingLayer: Restore mode."];

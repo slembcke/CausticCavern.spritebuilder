@@ -32,7 +32,7 @@
 	caustics.texParameters = &((ccTexParams){GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT});
 	
 	_backgroundSprite.shaderUniforms[@"caustics"] = caustics;
-	_backgroundSprite.shaderUniforms[@"causticsSize"] = [NSValue valueWithCGSize:CC_SIZE_SCALE(caustics.contentSize, 4.0)];
+	_backgroundSprite.shaderUniforms[@"causticsSize"] = [NSValue valueWithCGSize:CC_SIZE_SCALE(caustics.contentSize, 8.0)];
 	
 	_backgroundSprite.shader = [[CCShader alloc] initWithVertexShaderSource:CC_GLSL(
 		uniform vec2 causticsSize;
@@ -172,7 +172,8 @@
 	float _phase;
 }
 
-static const GLKVector4 AlgaeBaseColor = {{0.0f,	0.99f,	0.27f, 1.0f}};
+static const GLKVector4 AlgaeBaseColor = {{0.00f,	0.99f,	0.27f, 1.0f}};
+static const GLKVector4 WaterBaseColor = {{0.62f,	0.92f,	1.00f, 1.0f}};
 
 -(void)onEnter
 {
@@ -200,8 +201,12 @@ static const GLKVector4 AlgaeBaseColor = {{0.0f,	0.99f,	0.27f, 1.0f}};
 	
 	float speed = ccpLength(self.physicsBody.velocity);
 	float intensity = clampf(speed/100.0f + 0.3f*(0.5f + 0.5*sinf(_phase)), 0.0f, 1.0f);
-	GLKVector4 dstColor = GLKVector4MultiplyScalar(AlgaeBaseColor, intensity);
-	_lightColor = GLKVector4Lerp(dstColor, _lightColor, powf(0.1, dt));
+	
+	float yPos = self.position.y;
+	float blend = clampf((yPos - 140.0f)/30.0f, 0.0f, 1.0f);
+	
+	GLKVector4 dstColor = GLKVector4MultiplyScalar(GLKVector4Lerp(WaterBaseColor, AlgaeBaseColor, blend), intensity);
+	_lightColor = GLKVector4Lerp(dstColor, _lightColor, powf(0.3, dt));
 }
 
 -(float)lightRadius
