@@ -15,6 +15,11 @@
 #import "LightingLayer.h"
 
 
+@interface AlgaeBlob : CCSprite<Light>
+@property(nonatomic, assign) GLKVector4 lightColor;
+@end
+
+
 @implementation MainScene {
 	CCSprite *_backgroundSprite;
 	CCPhysicsNode *_physicsNode;
@@ -73,6 +78,24 @@
 	[water applyBuoyancy:pair];
 	
 	return NO;
+}
+
+-(BOOL)ccPhysicsCollisionPreSolve:(CCPhysicsCollisionPair *)pair blob:(AlgaeBlob *)blob water:(WaterNode *)water
+{
+	[water applyBuoyancy:pair];
+	
+	return NO;
+}
+
+-(BOOL)ccPhysicsCollisionPostSolve:(CCPhysicsCollisionPair *)pair blob:(AlgaeBlob *)blob floater:(WaterNode *)water
+{
+	GLKVector4 red = GLKVector4Make(1.0, 0.0, 0.0, 1.0);
+	
+	float threshold = 2.0e3;
+	float max = 4.0e3;
+	blob.lightColor = GLKVector4Lerp(blob.lightColor, red, clampf((pair.totalKineticEnergy - threshold)/max, 0.0f, 1.0f));
+	
+	return YES;
 }
 
 @end
@@ -145,13 +168,19 @@
 @end
 
 
-@interface AlgaeBlob : CCSprite<Light> @end
-@implementation AlgaeBlob
+@implementation AlgaeBlob {
+	float _phase;
+}
+
+static const GLKVector4 AlgaeBaseColor = {{0.0f,	0.99f,	0.27f, 1.0f}};
 
 -(void)onEnter
 {
+	_phase = 2.0*M_PI*CCRANDOM_0_1();
+	_lightColor = AlgaeBaseColor;
+	
 	CCPhysicsBody *body = self.physicsBody;
-	body.collisionType = @"floater";
+	body.collisionType = @"blob";
 	
 	[self.lightingLayer addLight:self];
 	
@@ -165,6 +194,16 @@
 	[super onExit];
 }
 
+-(void)update:(CCTime)dt
+{
+	_phase += dt;
+	
+	float speed = ccpLength(self.physicsBody.velocity);
+	float intensity = clampf(speed/100.0f + 0.3f*(0.5f + 0.5*sinf(_phase)), 0.0f, 1.0f);
+	GLKVector4 dstColor = GLKVector4MultiplyScalar(AlgaeBaseColor, intensity);
+	_lightColor = GLKVector4Lerp(dstColor, _lightColor, powf(0.1, dt));
+}
+
 -(float)lightRadius
 {
 	return 250.0;
@@ -172,7 +211,7 @@
 
 -(GLKVector4)lightColor
 {
-	return GLKVector4Make(0.5, 1, 0.5, 1);
+	return _lightColor;
 }
 
 @end

@@ -21,7 +21,7 @@
 	CCPhysicsNode *physics = self.physicsNode;
 	NSAssert(physics, @"Must be added to a physics node.");
 	
-	_grab = [[ChipmunkMultiGrab alloc] initForSpace:physics.space withSmoothing:0.0 withGrabForce:1e5];
+	_grab = [[ChipmunkMultiGrab alloc] initForSpace:physics.space withSmoothing:powf(0.1f, 15.0f) withGrabForce:1e5];
 	
 	[super onEnter];
 }
