@@ -1,7 +1,5 @@
 #import "CCDirector_Private.h"
-#import "CCTextureCache.h"
 #import "CCTexture_Private.h"
-#import "CCRenderer_Private.h"
 
 #import "LightingLayer.h"
 
@@ -38,7 +36,7 @@
 			CCBlendFuncDstColor: @(GL_ONE),
 		}];
 		
-		CCTexture *lightTexture = [[CCTextureCache sharedTextureCache] addImage:@"LightAttenuation.psd"];
+		CCTexture *lightTexture = [CCTexture textureWithFile:@"LightAttenuation.psd"];
 		_lightRenderState = [CCRenderState renderStateWithBlendMode:lightBlend shader:[CCShader positionTextureColorShader] mainTexture:lightTexture];
 	}
 	
@@ -47,10 +45,16 @@
 
 -(void)onEnter
 {
+	// This is a private director method and is crummy way of aligning the lightmap with the screen.
+	// A better (and simpler) solution in hindsight would be to share the screen's projection with the render texture and
+	// use an identity transform when rendering to the screen. 
 	CGRect viewport = [CCDirector sharedDirector].viewportRect;
 	_lightMapBuffer = [CCRenderTexture renderTextureWithWidth:ceilf(viewport.size.width) height:ceilf(viewport.size.height)];
 	_lightMapBuffer.position = viewport.origin;
 	_lightMapBuffer.contentScale /= 2;
+	
+	// This is currently a private method. CCRenderTextures default to being "aliased" (nearest neighbor filtering) for v2.x compatibility.
+	// Will be making a proper method to set this up soon since this is not very texture cache friendly.
 	[_lightMapBuffer.texture setAntiAliasTexParameters];
 	
 	_lightMapBuffer.projection = GLKMatrix4MakeOrtho(CGRectGetMinX(viewport), CGRectGetMaxX(viewport), CGRectGetMaxY(viewport), CGRectGetMinY(viewport), -1024, 1024);

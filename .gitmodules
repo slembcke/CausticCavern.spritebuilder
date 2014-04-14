@@ -1,4 +1,4 @@
 [submodule "Source/libs/cocos2d-iphone"]
 	path = Source/libs/cocos2d-iphone
 	url = git@github.com:cocos2d/cocos2d-iphone.git
-	branch = render-queue
+	branch = develop

@@ -8,7 +8,6 @@
 
 #import "CCPhysics+ObjectiveChipmunk.h"
 #import "CCTexture_Private.h"
-#import "CCTextureCache.h"
 
 #import "MainScene.h"
 #import "WaterNode.h"
@@ -28,7 +27,10 @@
 
 -(void)onEnter
 {
-	CCTexture *caustics = [[CCTextureCache sharedTextureCache] addImage:@"Caustics.psd"];
+	CCTexture *caustics = [CCTexture textureWithFile:@"Caustics.psd"];
+	
+	// This is currently part of the private texture API...
+	// Need to find a nice way to expose this when loading textures since it's not very friendly to cached textures.
 	caustics.texParameters = &((ccTexParams){GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT});
 	
 	_backgroundSprite.shaderUniforms[@"caustics"] = caustics;

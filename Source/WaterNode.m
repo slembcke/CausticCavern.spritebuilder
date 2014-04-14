@@ -1,9 +1,9 @@
 #import "WaterNode.h"
 #import "CCPhysics+ObjectiveChipmunk.h"
-#import "CCNode_Private.h"
-#import "CCSprite_Private.h"
+
+//#import "CCNode_Private.h"
+//#import "CCSprite_Private.h"
 #import "CCTexture_Private.h"
-#import "CCTextureCache.h"
 #import "CCDirector_Private.h"
 
 static const cpFloat FLUID_DENSITY = 1.5e-3;
@@ -32,7 +32,11 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 	_prevSurface = _surface + _surfaceCount;
 	
 	// Set up a matrix to convert from vertex positions to texture coordinates for the refraction.
+
+	// This is a private director method. It's only used for aligning the BG texture coordinates for the distortion shader.
+	// I should really find a cleaner way to do this. :-/
 	CGRect viewport = [CCDirector sharedDirector].viewportRect;
+	
 	CGSize designSize = [CCDirector sharedDirector].designSize;
 	self.shaderUniforms[@"texMatrix"] = [NSValue valueWithGLKMatrix4:GLKMatrix4Invert(GLKMatrix4MakeOrtho(
 		CGRectGetMinX(viewport)/designSize.width,
@@ -43,9 +47,10 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 	), NULL)];
 	
 	// Set the cave background texture.
-	self.shaderUniforms[@"refractedBackground"] = [[CCTextureCache sharedTextureCache] addImage:@"CaveBackground.psd"];
+	self.shaderUniforms[@"refractedBackground"] = [CCTexture textureWithFile:@"CaveBackground.psd"];
 	
-	CCTexture *noise = [[CCTextureCache sharedTextureCache] addImage:@"Noise.psd"];
+	CCTexture *noise = [CCTexture textureWithFile:@"Noise.psd"];
+	// Currently a private texture method. We'll expose a better way to set up texture parameters soon.
 	noise.texParameters = &((ccTexParams){GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT});
 	
 	self.shaderUniforms[@"noise"] = noise;
@@ -239,12 +244,12 @@ Diffuse(float diff, float damp, float prev, float curr, float next){
 
 -(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform
 {
-	CCVertex *spriteVerts = self.verts;
+	const CCSpriteVertexes *verts = self.vertexes;
 	
-	CCVertex bl = CCVertexApplyTransform(spriteVerts[0], transform);
-	CCVertex br = CCVertexApplyTransform(spriteVerts[1], transform);
-	CCVertex tr = CCVertexApplyTransform(spriteVerts[2], transform);
-	CCVertex tl = CCVertexApplyTransform(spriteVerts[3], transform);
+	CCVertex bl = CCVertexApplyTransform(verts->bl, transform);
+	CCVertex br = CCVertexApplyTransform(verts->br, transform);
+	CCVertex tr = CCVertexApplyTransform(verts->tr, transform);
+	CCVertex tl = CCVertexApplyTransform(verts->tl, transform);
 	
 	GLKVector4 ybasis = GLKMatrix4MultiplyVector4(*transform, GLKVector4Make(0.0, 1.0, 0.0, 0.0));
 	
