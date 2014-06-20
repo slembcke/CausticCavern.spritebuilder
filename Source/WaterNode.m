@@ -41,8 +41,8 @@ static const cpFloat FLUID_DRAG = 1.0e0;
 	self.shaderUniforms[@"texMatrix"] = [NSValue valueWithGLKMatrix4:GLKMatrix4Invert(GLKMatrix4MakeOrtho(
 		CGRectGetMinX(viewport)/designSize.width,
 		CGRectGetMaxX(viewport)/designSize.width,
-		CGRectGetMaxY(viewport)/designSize.height,
 		CGRectGetMinY(viewport)/designSize.height,
+		CGRectGetMaxY(viewport)/designSize.height,
 		-1.0f, 1.0f
 	), NULL)];
 	
@@ -256,7 +256,7 @@ Diffuse(float diff, float damp, float prev, float curr, float next){
 	NSUInteger count = (_surfaceCount - 1);
 	float *surface = _surface;
 	
-	CCRenderBuffer buffer =[renderer enqueueTriangles:2*count andVertexes:2*_surfaceCount withState:self.renderState];
+	CCRenderBuffer buffer =[renderer enqueueTriangles:2*count andVertexes:2*_surfaceCount withState:self.renderState globalSortOrder:0];
 	CCRenderBufferSetVertex(buffer, 0, bl);
 	
 	CCVertex v1 = tl;

@@ -57,7 +57,7 @@
 	// Will be making a proper method to set this up soon since this is not very texture cache friendly.
 	[_lightMapBuffer.texture setAntiAliasTexParameters];
 	
-	_lightMapBuffer.projection = GLKMatrix4MakeOrtho(CGRectGetMinX(viewport), CGRectGetMaxX(viewport), CGRectGetMaxY(viewport), CGRectGetMinY(viewport), -1024, 1024);
+	_lightMapBuffer.projection = GLKMatrix4MakeOrtho(CGRectGetMinX(viewport), CGRectGetMaxX(viewport), CGRectGetMinY(viewport), CGRectGetMaxY(viewport), -1024, 1024);
 	
 	CCSprite *rtSprite = _lightMapBuffer.sprite;
 	rtSprite.anchorPoint = CGPointZero;
@@ -121,7 +121,7 @@
 		
 		GLKMatrix4 shadowProjection = GLKMatrix4Multiply(projection, shadowMatrix);
 		
-		CCRenderBuffer buffer = [renderer enqueueTriangles:2*count andVertexes:2*count withState:_shadowRenderState];
+		CCRenderBuffer buffer = [renderer enqueueTriangles:2*count andVertexes:2*count withState:_shadowRenderState globalSortOrder:0];
 		
 		for(int i=0, j=count-1; i<count; j=i, i++){
 			CCVertex v = verts[i];
@@ -162,10 +162,10 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 				
 				// The shadow mask should only affect the alpha chanel.
 				glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-			} debugLabel:@"LightingLayer: Set shadow mask drawing mode."];
+			} globalSortOrder:0 debugLabel:@"LightingLayer: Set shadow mask drawing mode." threadSafe:YES];
 			
 			// Clear the alpha and draw the shadow mask.
-			[renderer enqueueClear:GL_COLOR_BUFFER_BIT color:GLKVector4Make(0.0f, 0.0f, 0.0f, 1.0f) depth:0.0f stencil:0];
+			[renderer enqueueClear:GL_COLOR_BUFFER_BIT color:GLKVector4Make(0.0f, 0.0f, 0.0f, 1.0f) depth:0.0 stencil:0 globalSortOrder:0];
 			[self maskLight:light renderer:renderer worldToLight:worldToLight projection:projection];
 			
 			// This is kind of a nasty hack...
@@ -177,10 +177,10 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 			[renderer enqueueBlock:^{
 				glDisable(GL_CULL_FACE);
 				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-			} debugLabel:@"LightingLayer: Restore mode."];
+			} globalSortOrder:0 debugLabel:@"LightingLayer: Restore mode" threadSafe:YES];
 			
 			// Render a quad for the light.
-			CCRenderBuffer buffer = [renderer enqueueTriangles:2 andVertexes:4 withState:_lightRenderState];
+			CCRenderBuffer buffer = [renderer enqueueTriangles:2 andVertexes:4 withState:_lightRenderState globalSortOrder:0];
 			CCRenderBufferSetVertex(buffer, 0, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y - radius), GLKVector2Make(0, 0), color4));
 			CCRenderBufferSetVertex(buffer, 1, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y + radius), GLKVector2Make(0, 1), color4));
 			CCRenderBufferSetVertex(buffer, 2, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y + radius), GLKVector2Make(1, 1), color4));

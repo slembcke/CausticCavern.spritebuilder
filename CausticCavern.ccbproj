@@ -28,10 +28,6 @@
 	<integer>1</integer>
 	<key>flattenPaths</key>
 	<false/>
-	<key>javascriptBased</key>
-	<true/>
-	<key>javascriptMainCCB</key>
-	<string>MainScene</string>
 	<key>needRepublish</key>
 	<false/>
 	<key>onlyPublishCCBs</key>
@@ -44,22 +40,12 @@
 	<string>Source/Resources/Published-iOS</string>
 	<key>publishDirectoryAndroid</key>
 	<string>Source/Resources/Published-Android</string>
-	<key>publishDirectoryHTML5</key>
-	<string>Published-HTML5</string>
 	<key>publishEnabledAndroid</key>
 	<true/>
-	<key>publishEnabledHTML5</key>
-	<false/>
 	<key>publishEnablediPhone</key>
 	<true/>
 	<key>publishEnvironment</key>
 	<integer>0</integer>
-	<key>publishResolutionHTML5_height</key>
-	<integer>320</integer>
-	<key>publishResolutionHTML5_scale</key>
-	<integer>1</integer>
-	<key>publishResolutionHTML5_width</key>
-	<integer>480</integer>
 	<key>publishResolution_android_phone</key>
 	<true/>
 	<key>publishResolution_android_phonehd</key>
@@ -180,9 +166,9 @@
 		</dict>
 	</dict>
 	<key>versionStr</key>
-	<string>Version: 
+	<string>Version: 1.1
 -n GitHub: 
-5fbdcb7817
+34f7a63dd6
 </string>
 </dict>
 </plist>
