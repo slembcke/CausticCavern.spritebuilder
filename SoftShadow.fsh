@@ -16,10 +16,8 @@ float edge(mat2 m, vec2 delta, float clipped){
 
 void main(){
 	vec2 position = positionFrag.xy/positionFrag.w;
-	if(dot(position, clipFrag.xy) > clipFrag.w) discard;
 	
 	float occlusionA = edge(edgeAFrag, position - segmentAFrag, 1.0);
 	float occlusionB = edge(edgeBFrag, position - segmentBFrag, 0.0);
-	gl_FragColor = vec4(vec3(0.0), clamp(occlusionA - occlusionB, 0.0, 1.0));
-//	PhotonFragOut += vec4(0.25, 0.0, 0.0, 1.0);
+	gl_FragColor = vec4(step(dot(position, clipFrag.xy), clipFrag.w)*(occlusionA - occlusionB));
 }
