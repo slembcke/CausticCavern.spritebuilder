@@ -24,7 +24,6 @@
 		B7378977180762440076A88C /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = B737896D180762440076A88C /* Default.png */; };
 		B7378978180762440076A88C /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B737896E180762440076A88C /* Default@2x.png */; };
 		B73789871807631A0076A88C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B73789851807631A0076A88C /* main.m */; };
-		B737898A1807642B0076A88C /* libcocos2d.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B737894B180761A90076A88C /* libcocos2d.a */; };
 		B7378994180767190076A88C /* MainScene.m in Sources */ = {isa = PBXBuildFile; fileRef = B7378993180767190076A88C /* MainScene.m */; };
 		B77F1B3217B978D7009739AE /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B77F1B3117B978D7009739AE /* QuartzCore.framework */; };
 		B77F1B3417B978D7009739AE /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B77F1B3317B978D7009739AE /* OpenGLES.framework */; };
@@ -41,22 +40,44 @@
 		D3641B4818D2683300B5FB1A /* LightingLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D3641B4718D2683300B5FB1A /* LightingLayer.m */; };
 		D3C9935918CD159700B788F6 /* CCPhysicsTouchNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C9935818CD159700B788F6 /* CCPhysicsTouchNode.m */; };
 		D3C9935D18CD298000B788F6 /* WaterNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C9935C18CD298000B788F6 /* WaterNode.m */; };
+		D3EDB69F1AF3A69900D2BF87 /* libcocos2d.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D3EDB6941AF3A68700D2BF87 /* libcocos2d.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		B737894A180761A90076A88C /* PBXContainerItemProxy */ = {
+		D3EDB6931AF3A68700D2BF87 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = B7378940180761A80076A88C /* cocos2d-ios.xcodeproj */;
+			containerPortal = D3EDB6861AF3A68600D2BF87 /* cocos2d.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 5018F24D0DFDEAC400C013A5;
-			remoteInfo = cocos2d;
+			remoteInfo = "cocos2d-ios";
 		};
-		B7378988180764180076A88C /* PBXContainerItemProxy */ = {
+		D3EDB6951AF3A68700D2BF87 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = B7378940180761A80076A88C /* cocos2d-ios.xcodeproj */;
+			containerPortal = D3EDB6861AF3A68600D2BF87 /* cocos2d.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2FEB74F194F6C9E00FC0574;
+			remoteInfo = cocos2dAndroid;
+		};
+		D3EDB6971AF3A68700D2BF87 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D3EDB6861AF3A68600D2BF87 /* cocos2d.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7A4037A819E37038007B6E8F;
+			remoteInfo = "cocos2d-mac";
+		};
+		D3EDB6991AF3A68700D2BF87 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D3EDB6861AF3A68600D2BF87 /* cocos2d.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = B7E7DE341A76DB7D004234B7;
+			remoteInfo = cocos2dMacFramework;
+		};
+		D3EDB69D1AF3A69100D2BF87 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D3EDB6861AF3A68600D2BF87 /* cocos2d.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 5018F24C0DFDEAC400C013A5;
-			remoteInfo = cocos2d;
+			remoteInfo = "cocos2d-ios";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -74,7 +95,6 @@
 		B737893A180761570076A88C /* Published-iOS */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Published-iOS"; path = "Source/Resources/Published-iOS"; sourceTree = SOURCE_ROOT; };
 		B737893D1807617C0076A88C /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Source/AppDelegate.h; sourceTree = "<group>"; };
 		B737893E1807617C0076A88C /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = Source/AppDelegate.m; sourceTree = "<group>"; };
-		B7378940180761A80076A88C /* cocos2d-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "cocos2d-ios.xcodeproj"; path = "Source/libs/cocos2d-iphone/cocos2d-ios.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		B737896B180762440076A88C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "Source/Resources/Default-568h@2x.png"; sourceTree = SOURCE_ROOT; };
 		B737896C180762440076A88C /* Default-Landscape~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-Landscape~ipad.png"; path = "Source/Resources/Default-Landscape~ipad.png"; sourceTree = SOURCE_ROOT; };
 		B737896D180762440076A88C /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Default.png; path = Source/Resources/Default.png; sourceTree = SOURCE_ROOT; };
@@ -103,6 +123,7 @@
 		D3C9935818CD159700B788F6 /* CCPhysicsTouchNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CCPhysicsTouchNode.m; path = Source/CCPhysicsTouchNode.m; sourceTree = "<group>"; };
 		D3C9935B18CD298000B788F6 /* WaterNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WaterNode.h; path = Source/WaterNode.h; sourceTree = "<group>"; };
 		D3C9935C18CD298000B788F6 /* WaterNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = WaterNode.m; path = Source/WaterNode.m; sourceTree = "<group>"; };
+		D3EDB6861AF3A68600D2BF87 /* cocos2d.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cocos2d.xcodeproj; path = "Source/libs/cocos2d-iphone/cocos2d.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,8 +131,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3EDB69F1AF3A69900D2BF87 /* libcocos2d.a in Frameworks */,
 				D32D377118CD8D8E0044D797 /* GLKit.framework in Frameworks */,
-				B737898A1807642B0076A88C /* libcocos2d.a in Frameworks */,
 				B77F1B3217B978D7009739AE /* QuartzCore.framework in Frameworks */,
 				B77F1B3417B978D7009739AE /* OpenGLES.framework in Frameworks */,
 				B77F1B3617B978D7009739AE /* OpenAL.framework in Frameworks */,
@@ -130,7 +151,7 @@
 		9222E2B918734FF800A246C7 /* libs */ = {
 			isa = PBXGroup;
 			children = (
-				B7378940180761A80076A88C /* cocos2d-ios.xcodeproj */,
+				D3EDB6861AF3A68600D2BF87 /* cocos2d.xcodeproj */,
 			);
 			name = libs;
 			sourceTree = "<group>";
@@ -152,14 +173,6 @@
 				D30DA6CF1AF38CD200A724E8 /* SoftShadow.fsh */,
 			);
 			name = Source;
-			sourceTree = "<group>";
-		};
-		B7378941180761A80076A88C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				B737894B180761A90076A88C /* libcocos2d.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		B73789911807667A0076A88C /* Icons */ = {
@@ -240,6 +253,17 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		D3EDB6871AF3A68600D2BF87 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D3EDB6941AF3A68700D2BF87 /* libcocos2d.a */,
+				D3EDB6961AF3A68700D2BF87 /* libcocos2dAndroid.a */,
+				D3EDB6981AF3A68700D2BF87 /* libcocos2d-mac.a */,
+				D3EDB69A1AF3A68700D2BF87 /* cocos2dMacFramework.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -254,7 +278,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				B7378989180764180076A88C /* PBXTargetDependency */,
+				D3EDB69E1AF3A69100D2BF87 /* PBXTargetDependency */,
 			);
 			name = CausticCavern;
 			productName = Example;
@@ -292,8 +316,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = B7378941180761A80076A88C /* Products */;
-					ProjectRef = B7378940180761A80076A88C /* cocos2d-ios.xcodeproj */;
+					ProductGroup = D3EDB6871AF3A68600D2BF87 /* Products */;
+					ProjectRef = D3EDB6861AF3A68600D2BF87 /* cocos2d.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -304,11 +328,32 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		B737894B180761A90076A88C /* libcocos2d.a */ = {
+		D3EDB6941AF3A68700D2BF87 /* libcocos2d.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libcocos2d.a;
-			remoteRef = B737894A180761A90076A88C /* PBXContainerItemProxy */;
+			remoteRef = D3EDB6931AF3A68700D2BF87 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D3EDB6961AF3A68700D2BF87 /* libcocos2dAndroid.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcocos2dAndroid.a;
+			remoteRef = D3EDB6951AF3A68700D2BF87 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D3EDB6981AF3A68700D2BF87 /* libcocos2d-mac.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcocos2d-mac.a";
+			remoteRef = D3EDB6971AF3A68700D2BF87 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D3EDB69A1AF3A68700D2BF87 /* cocos2dMacFramework.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = cocos2dMacFramework.framework;
+			remoteRef = D3EDB6991AF3A68700D2BF87 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -357,10 +402,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		B7378989180764180076A88C /* PBXTargetDependency */ = {
+		D3EDB69E1AF3A69100D2BF87 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = cocos2d;
-			targetProxy = B7378988180764180076A88C /* PBXContainerItemProxy */;
+			name = "cocos2d-ios";
+			targetProxy = D3EDB69D1AF3A69100D2BF87 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

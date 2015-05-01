@@ -61,7 +61,7 @@
 	
 	// This is currently a private method. CCRenderTextures default to being "aliased" (nearest neighbor filtering) for v2.x compatibility.
 	// Will be making a proper method to set this up soon since this is not very texture cache friendly.
-	[_lightMapBuffer.texture setAntiAliasTexParameters];
+	[_lightMapBuffer.texture setTexParameters:&(ccTexParams){GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE}];
 	
 	_lightMapBuffer.projection = GLKMatrix4MakeOrtho(CGRectGetMinX(viewport), CGRectGetMaxX(viewport), CGRectGetMinY(viewport), CGRectGetMaxY(viewport), -1024, 1024);
 	
@@ -152,7 +152,7 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 	GLKMatrix4 projection = _lightMapBuffer.projection;
 	
 	float ambient = 0.2*0.5;
-	[_lightMapBuffer beginWithClear:ambient g:ambient b:ambient a:1.0f];
+	CCRenderer *rtRenderer = [_lightMapBuffer beginWithClear:ambient g:ambient b:ambient a:1.0f];
 		for(CCNode<Light> *light in _lights){
 			CGPoint pos = light.position;
 			float radius = light.lightRadius;
@@ -161,7 +161,7 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 			CGPoint light2 = [light convertToWorldSpace:light.anchorPointInPoints];
 			GLKVector4 lightPosition = GLKMatrix4MultiplyVector4(projection, GLKVector4Make(light2.x, light2.y, 0.0f, 1.0f));
 			
-			[renderer enqueueBlock:^{
+			[rtRenderer enqueueBlock:^{
 				// Disable drawing the front faces to cut down on fillrate.
 				glEnable(GL_CULL_FACE);
 				glCullFace(GL_FRONT);
@@ -172,22 +172,22 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 			} globalSortOrder:0 debugLabel:@"LightingLayer: Set shadow mask drawing mode." threadSafe:YES];
 			
 			// Clear the alpha and draw the shadow mask.
-			[renderer enqueueClear:GL_COLOR_BUFFER_BIT color:GLKVector4Make(0.0f, 0.0f, 0.0f, 1.0f) depth:0.0 stencil:0 globalSortOrder:0];
-			[self maskLight:light renderer:renderer lightPosition:lightPosition radius:0.1 projection:&projection];
+			[rtRenderer enqueueClear:GL_COLOR_BUFFER_BIT color:GLKVector4Make(0.0f, 0.0f, 0.0f, 1.0f) depth:0.0 stencil:0 globalSortOrder:0];
+			[self maskLight:light renderer:rtRenderer lightPosition:lightPosition radius:0.1 projection:&projection];
 			
 			// This is kind of a nasty hack...
 			for(CCNode *occluder in _occluders){
-				[occluder visit:renderer parentTransform:&projection];
+				[occluder visit:rtRenderer parentTransform:&projection];
 			}
 			
 			// Reset culling and color masking.
-			[renderer enqueueBlock:^{
+			[rtRenderer enqueueBlock:^{
 				glDisable(GL_CULL_FACE);
 				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 			} globalSortOrder:0 debugLabel:@"LightingLayer: Restore mode" threadSafe:YES];
 			
 			// Render a quad for the light.
-			CCRenderBuffer buffer = [renderer enqueueTriangles:2 andVertexes:4 withState:_lightRenderState globalSortOrder:0];
+			CCRenderBuffer buffer = [rtRenderer enqueueTriangles:2 andVertexes:4 withState:_lightRenderState globalSortOrder:0];
 			CCRenderBufferSetVertex(buffer, 0, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y - radius), GLKVector2Make(0, 0), color4));
 			CCRenderBufferSetVertex(buffer, 1, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y + radius), GLKVector2Make(0, 1), color4));
 			CCRenderBufferSetVertex(buffer, 2, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y + radius), GLKVector2Make(1, 1), color4));

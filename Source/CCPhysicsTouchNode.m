@@ -26,22 +26,22 @@
 	[super onEnter];
 }
 
--(void)touchBegan:(UITouch *)touch withEvent:(UIEvent *)event
+-(void)touchBegan:(CCTouch *)touch withEvent:(CCTouchEvent *)event
 {
 	[_grab beginLocation:[touch locationInNode:self]];
 }
 
--(void)touchMoved:(UITouch *)touch withEvent:(UIEvent *)event
+-(void)touchMoved:(CCTouch *)touch withEvent:(CCTouchEvent *)event
 {
 	[_grab updateLocation:[touch locationInNode:self]];
 }
 
--(void)touchEnded:(UITouch *)touch withEvent:(UIEvent *)event
+-(void)touchEnded:(CCTouch *)touch withEvent:(CCTouchEvent *)event
 {
 	[_grab endLocation:[touch locationInNode:self]];
 }
 
--(void)touchCancelled:(UITouch *)touch withEvent:(UIEvent *)event
+-(void)touchCancelled:(CCTouch *)touch withEvent:(CCTouchEvent *)event
 {
 	[self touchEnded:touch withEvent:event];
 }
