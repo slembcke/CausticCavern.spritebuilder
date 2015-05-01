@@ -8,7 +8,7 @@
 
 
 @protocol Occluder
-@property(nonatomic, readonly) CCVertex *occluderVertexes;
+@property(nonatomic, readonly) GLKVector2 *occluderVertexes;
 @property(nonatomic, readonly) int occluderVertexCount;
 @end
 

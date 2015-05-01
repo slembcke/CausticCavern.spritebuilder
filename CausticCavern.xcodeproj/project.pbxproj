@@ -35,6 +35,8 @@
 		B77F1B3E17B978D7009739AE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B77F1B3D17B978D7009739AE /* Foundation.framework */; };
 		B77F1B4017B978D7009739AE /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B77F1B3F17B978D7009739AE /* CoreGraphics.framework */; };
 		B77F1B4217B978D7009739AE /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B77F1B4117B978D7009739AE /* CoreText.framework */; };
+		D30DA6CD1AF38CC700A724E8 /* SoftShadow.vsh in Resources */ = {isa = PBXBuildFile; fileRef = D30DA6CC1AF38CC700A724E8 /* SoftShadow.vsh */; };
+		D30DA6D01AF38CD200A724E8 /* SoftShadow.fsh in Resources */ = {isa = PBXBuildFile; fileRef = D30DA6CF1AF38CD200A724E8 /* SoftShadow.fsh */; };
 		D32D377118CD8D8E0044D797 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D32D377018CD8D8E0044D797 /* GLKit.framework */; };
 		D3641B4818D2683300B5FB1A /* LightingLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D3641B4718D2683300B5FB1A /* LightingLayer.m */; };
 		D3C9935918CD159700B788F6 /* CCPhysicsTouchNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D3C9935818CD159700B788F6 /* CCPhysicsTouchNode.m */; };
@@ -92,6 +94,8 @@
 		B77F1B3F17B978D7009739AE /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B77F1B4117B978D7009739AE /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		B7B3713D180358F1007369CC /* libObjectiveChipmunk.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libObjectiveChipmunk.a; path = "../libs/cocos2d-iphone/external/Chipmunk/xcode/build/Debug-iphoneos/libObjectiveChipmunk.a"; sourceTree = "<group>"; };
+		D30DA6CC1AF38CC700A724E8 /* SoftShadow.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = SoftShadow.vsh; sourceTree = "<group>"; };
+		D30DA6CF1AF38CD200A724E8 /* SoftShadow.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = SoftShadow.fsh; sourceTree = "<group>"; };
 		D32D377018CD8D8E0044D797 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		D3641B4618D2683300B5FB1A /* LightingLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LightingLayer.h; sourceTree = "<group>"; };
 		D3641B4718D2683300B5FB1A /* LightingLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LightingLayer.m; sourceTree = "<group>"; };
@@ -144,6 +148,8 @@
 				D3C9935C18CD298000B788F6 /* WaterNode.m */,
 				D3641B4618D2683300B5FB1A /* LightingLayer.h */,
 				D3641B4718D2683300B5FB1A /* LightingLayer.m */,
+				D30DA6CC1AF38CC700A724E8 /* SoftShadow.vsh */,
+				D30DA6CF1AF38CD200A724E8 /* SoftShadow.fsh */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -327,6 +333,8 @@
 				B71F5918188484E7003F4D28 /* iPhone@2x.png in Resources */,
 				B7378977180762440076A88C /* Default.png in Resources */,
 				B71F5911188484E7003F4D28 /* iPad-old.png in Resources */,
+				D30DA6D01AF38CD200A724E8 /* SoftShadow.fsh in Resources */,
+				D30DA6CD1AF38CC700A724E8 /* SoftShadow.vsh in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

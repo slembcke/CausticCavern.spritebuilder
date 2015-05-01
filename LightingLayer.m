@@ -29,7 +29,13 @@
 		_occluders = [NSMutableArray array];
 		_lights = [NSMutableArray array];
 		
-		_shadowRenderState = [CCRenderState renderStateWithBlendMode:[CCBlendMode disabledMode] shader:[CCShader positionColorShader] mainTexture:[CCTexture none]];
+		CCBlendMode *blendMode = [CCBlendMode blendModeWithOptions:@{
+			CCBlendEquationColor: @(GL_FUNC_REVERSE_SUBTRACT),
+			CCBlendFuncSrcColor: @(GL_ONE),
+			CCBlendFuncDstColor: @(GL_ONE),
+		}];
+		
+		_shadowRenderState = [CCRenderState renderStateWithBlendMode:blendMode shader:[CCShader shaderNamed:@"SoftShadow"] mainTexture:[CCTexture none]];
 		
 		CCBlendMode *lightBlend = [CCBlendMode blendModeWithOptions:@{
 			CCBlendFuncSrcColor: @(GL_DST_ALPHA),
@@ -96,12 +102,17 @@
 	[_occluders removeObject:occluder];
 }
 
--(void)maskLight:(CCNode<Light> *)light renderer:(CCRenderer *)renderer worldToLight:(CGAffineTransform)worldToLight projection:(GLKMatrix4)projection
+static inline GLKVector2 GLKMatrix4MultiplyVector2(GLKMatrix4 m, GLKVector2 v){
+	GLKVector4 v4 = GLKMatrix4MultiplyVector4(m, GLKVector4Make(v.x, v.y, 0.0f, 1.0f));
+	return GLKVector2Make(v4.x, v4.y);
+}
+
+-(void)maskLight:(CCNode<Light> *)light renderer:(CCRenderer *)renderer lightPosition:(GLKVector4)lightPosition radius:(float)radius projection:(GLKMatrix4 *)projection
 {
 	for(CCNode<Occluder> *occluder in _occluders){
-		CCVertex *verts = occluder.occluderVertexes;
+		GLKVector2 *verts = occluder.occluderVertexes;
 		int count = occluder.occluderVertexCount;
-		CGAffineTransform toLight = CGAffineTransformConcat(occluder.nodeToWorldTransform, worldToLight);
+		CGAffineTransform toLight = occluder.nodeToWorldTransform;
 		
 		GLKMatrix4 occluderMatrix = GLKMatrix4Make(
 			 toLight.a,  toLight.b, 0.0f, 0.0f,
@@ -110,28 +121,21 @@
 			toLight.tx, toLight.ty, 0.0f, 1.0f
 		);
 		
-		CGPoint lightPosition = light.position;
-		float lx = lightPosition.x, ly = lightPosition.y;
-		GLKMatrix4 shadowMatrix = GLKMatrix4Multiply(GLKMatrix4Make(
-			1.0f, 0.0f, 0.0f,  0.0f,
-			0.0f, 1.0f, 0.0f,  0.0f,
-			 -lx,  -ly, 0.0f, -1.0f,
-			0.0f, 0.0f, 0.0f,  1.0f
-		), occluderMatrix);
+		GLKMatrix4 transform = GLKMatrix4Multiply(*projection, occluderMatrix);
 		
-		GLKMatrix4 shadowProjection = GLKMatrix4Multiply(projection, shadowMatrix);
-		
-		CCRenderBuffer buffer = [renderer enqueueTriangles:2*count andVertexes:2*count withState:_shadowRenderState globalSortOrder:0];
+		CCRenderBuffer buffer = [renderer enqueueTriangles:2*count andVertexes:4*count withState:_shadowRenderState globalSortOrder:0];
 		
 		for(int i=0, j=count-1; i<count; j=i, i++){
-			CCVertex v = verts[i];
-			CCRenderBufferSetVertex(buffer, 2*i + 0, CCVertexApplyTransform(v, &shadowProjection));
+			GLKVector2 v1 = GLKMatrix4MultiplyVector2(transform, verts[i]);
+			GLKVector2 v2 = GLKMatrix4MultiplyVector2(transform, verts[(i + 1)%count]);
 			
-			v.position.z = 1.0;
-			CCRenderBufferSetVertex(buffer, 2*i + 1, CCVertexApplyTransform(v, &shadowProjection));
+			CCRenderBufferSetVertex(buffer, 4*i + 0, (CCVertex){lightPosition, v1, v2, {0.0f, 0.0f,  0.0f, radius}});
+			CCRenderBufferSetVertex(buffer, 4*i + 1, (CCVertex){lightPosition, v1, v2, {1.0f, 0.0f,  0.0f, radius}});
+			CCRenderBufferSetVertex(buffer, 4*i + 2, (CCVertex){lightPosition, v1, v2, {0.0f, 1.0f, -1.0f, radius}});
+			CCRenderBufferSetVertex(buffer, 4*i + 3, (CCVertex){lightPosition, v1, v2, {1.0f, 1.0f,  1.0f, radius}});
 			
-			CCRenderBufferSetTriangle(buffer, 2*i + 0, 2*i + 0, 2*i + 1, 2*j + 0);
-			CCRenderBufferSetTriangle(buffer, 2*i + 1, 2*j + 1, 2*j + 0, 2*i + 1);
+			CCRenderBufferSetTriangle(buffer, 2*i + 0, 4*i + 0, 4*i + 1, 4*i + 2);
+			CCRenderBufferSetTriangle(buffer, 2*i + 1, 4*i + 1, 4*i + 3, 4*i + 2);
 		}
 	}
 }
@@ -145,7 +149,6 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 
 -(void)visit:(CCRenderer *)renderer parentTransform:(const GLKMatrix4 *)parentTransform
 {
-	CGAffineTransform worldToLight = self.worldToNodeTransform;
 	GLKMatrix4 projection = _lightMapBuffer.projection;
 	
 	float ambient = 0.2*0.5;
@@ -155,10 +158,14 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 			float radius = light.lightRadius;
 			GLKVector4 color4 = GLKVector4MultiplyScalar(light.lightColor, 0.5);
 			
+			CGPoint light2 = [light convertToWorldSpace:light.anchorPointInPoints];
+			GLKVector4 lightPosition = GLKMatrix4MultiplyVector4(projection, GLKVector4Make(light2.x, light2.y, 0.0f, 1.0f));
+			
 			[renderer enqueueBlock:^{
 				// Disable drawing the front faces to cut down on fillrate.
 				glEnable(GL_CULL_FACE);
 				glCullFace(GL_FRONT);
+				glFrontFace(GL_CCW);
 				
 				// The shadow mask should only affect the alpha chanel.
 				glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
@@ -166,7 +173,7 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 			
 			// Clear the alpha and draw the shadow mask.
 			[renderer enqueueClear:GL_COLOR_BUFFER_BIT color:GLKVector4Make(0.0f, 0.0f, 0.0f, 1.0f) depth:0.0 stencil:0 globalSortOrder:0];
-			[self maskLight:light renderer:renderer worldToLight:worldToLight projection:projection];
+			[self maskLight:light renderer:renderer lightPosition:lightPosition radius:0.1 projection:&projection];
 			
 			// This is kind of a nasty hack...
 			for(CCNode *occluder in _occluders){
