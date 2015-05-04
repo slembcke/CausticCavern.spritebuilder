@@ -1,14 +1,14 @@
-varying vec4 positionFrag;
-varying vec4 clipFrag;
+varying vec2 clipFrag;
 varying vec2 segmentAFrag;
 varying vec2 segmentBFrag;
-varying mat2 edgeAFrag;
-varying mat2 edgeBFrag;
 
-mat2 edgeMatrix(vec2 d, float r){
+mat2 penumbraMatrix(vec2 d, float r){
 	float a = 1.0/dot(d, d);
 	float b = 1.0/(r*length(d) + 1e-15);
-	return mat2(a*d.x, -b*d.y, a*d.y, b*d.x);
+	return mat2(
+		-b*d.y, a*d.x,
+		 b*d.x, a*d.y
+	);
 }
 
 void main(){
@@ -30,13 +30,11 @@ void main(){
 	vec2 segmentTangent = normalize(segmentB - segmentA);
 	vec2 segmentNormal = vec2(-segmentTangent.y, segmentTangent.x);
 	
-	gl_Position = vec4(projectedPosition, 0.0, 1.0 - segmentCoords.y);
+	float projectedCoord = 1.0 - segmentCoords.y;
+	gl_Position = vec4(projectedPosition, 0.0, projectedCoord);
 	
 	// Output fragment data!
-	positionFrag = gl_Position;
-	clipFrag = vec4(segmentNormal, 0.0, dot(segmentNormal, segmentA + segmentB)*0.5);
-	segmentAFrag = segmentA;
-	segmentBFrag = segmentB;
-	edgeAFrag = edgeMatrix(segmentA - lightPosition, radius);
-	edgeBFrag = edgeMatrix(segmentB - lightPosition, radius);
+	clipFrag = vec2(dot(gl_Position.xy, segmentNormal), gl_Position.w*dot(segmentNormal, segmentA + segmentB)*0.5);
+	segmentAFrag = penumbraMatrix(segmentA - lightPosition, radius)*(gl_Position.xy - segmentA*projectedCoord);
+	segmentBFrag = penumbraMatrix(segmentB - lightPosition, radius)*(gl_Position.xy - segmentB*projectedCoord);
 }
