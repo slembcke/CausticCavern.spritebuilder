@@ -20,6 +20,7 @@
 	
 	CCRenderTexture *_lightMapBuffer;
 	CCRenderState *_shadowRenderState;
+	CCRenderState *_shadowClearRenderState;
 	CCRenderState *_lightRenderState;
 }
 
@@ -29,15 +30,30 @@
 		_occluders = [NSMutableArray array];
 		_lights = [NSMutableArray array];
 		
-		CCBlendMode *blendMode = [CCBlendMode blendModeWithOptions:@{
-			CCBlendEquationColor: @(GL_FUNC_REVERSE_SUBTRACT),
-			CCBlendFuncSrcColor: @(GL_ONE),
+		CCBlendMode *shadowBlend = [CCBlendMode blendModeWithOptions:@{
+			CCBlendEquationColor: @(GL_FUNC_ADD),
+			CCBlendFuncSrcColor: @(GL_ZERO),
 			CCBlendFuncDstColor: @(GL_ONE),
+			CCBlendEquationAlpha: @(GL_FUNC_REVERSE_SUBTRACT),
+			CCBlendFuncSrcAlpha: @(GL_ONE),
+			CCBlendFuncDstAlpha: @(GL_ONE),
 		}];
 		
-		_shadowRenderState = [CCRenderState renderStateWithBlendMode:blendMode shader:[CCShader shaderNamed:@"SoftShadow"] mainTexture:[CCTexture none]];
+		_shadowRenderState = [CCRenderState renderStateWithBlendMode:shadowBlend shader:[CCShader shaderNamed:@"SoftShadow"] mainTexture:[CCTexture none]];
+		
+		CCBlendMode *shadowClearBlend = [CCBlendMode blendModeWithOptions:@{
+			CCBlendEquationColor: @(GL_FUNC_ADD),
+			CCBlendFuncSrcColor: @(GL_ZERO),
+			CCBlendFuncDstColor: @(GL_ONE),
+			CCBlendEquationAlpha: @(GL_FUNC_ADD),
+			CCBlendFuncSrcAlpha: @(GL_ONE),
+			CCBlendFuncDstAlpha: @(GL_ZERO),
+		}];
+		
+		_shadowClearRenderState = [CCRenderState renderStateWithBlendMode:shadowClearBlend shader:[CCShader positionColorShader] mainTexture:[CCTexture none]];
 		
 		CCBlendMode *lightBlend = [CCBlendMode blendModeWithOptions:@{
+			CCBlendEquationColor: @(GL_FUNC_ADD),
 			CCBlendFuncSrcColor: @(GL_DST_ALPHA),
 			CCBlendFuncDstColor: @(GL_ONE),
 		}];
@@ -161,18 +177,21 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 			CGPoint light2 = [light convertToWorldSpace:light.anchorPointInPoints];
 			GLKVector4 lightPosition = GLKMatrix4MultiplyVector4(projection, GLKVector4Make(light2.x, light2.y, 0.0f, 1.0f));
 			
-			[rtRenderer enqueueBlock:^{
-				// Disable drawing the front faces to cut down on fillrate.
-				glEnable(GL_CULL_FACE);
-				glCullFace(GL_FRONT);
-				glFrontFace(GL_CCW);
+			// Clear the alpha under the light.
+			{
+				const GLKVector2 zero2 = {{0.0f, 0.0f}};
+				const GLKVector4 white = {{1.0f, 1.0f, 1.0f, 1.0f}};
 				
-				// The shadow mask should only affect the alpha chanel.
-				glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-			} globalSortOrder:0 debugLabel:@"LightingLayer: Set shadow mask drawing mode." threadSafe:YES];
+				CCRenderBuffer buffer = [rtRenderer enqueueTriangles:2 andVertexes:4 withState:_shadowClearRenderState globalSortOrder:0];
+				CCRenderBufferSetVertex(buffer, 0, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y - radius), zero2, white));
+				CCRenderBufferSetVertex(buffer, 1, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y + radius), zero2, white));
+				CCRenderBufferSetVertex(buffer, 2, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y + radius), zero2, white));
+				CCRenderBufferSetVertex(buffer, 3, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y - radius), zero2, white));
+				CCRenderBufferSetTriangle(buffer, 0, 0, 1, 2);
+				CCRenderBufferSetTriangle(buffer, 1, 0, 2, 3);
+			}
 			
-			// Clear the alpha and draw the shadow mask.
-			[rtRenderer enqueueClear:GL_COLOR_BUFFER_BIT color:GLKVector4Make(0.0f, 0.0f, 0.0f, 1.0f) depth:0.0 stencil:0 globalSortOrder:0];
+			// Draw the shadow mask.
 			[self maskLight:light renderer:rtRenderer lightPosition:lightPosition radius:0.1 projection:&projection];
 			
 			// This is kind of a nasty hack...
@@ -180,20 +199,16 @@ LightVertex(GLKMatrix4 transform, GLKVector2 pos, GLKVector2 texCoord, GLKVector
 				[occluder visit:rtRenderer parentTransform:&projection];
 			}
 			
-			// Reset culling and color masking.
-			[rtRenderer enqueueBlock:^{
-				glDisable(GL_CULL_FACE);
-				glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-			} globalSortOrder:0 debugLabel:@"LightingLayer: Restore mode" threadSafe:YES];
-			
 			// Render a quad for the light.
-			CCRenderBuffer buffer = [rtRenderer enqueueTriangles:2 andVertexes:4 withState:_lightRenderState globalSortOrder:0];
-			CCRenderBufferSetVertex(buffer, 0, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y - radius), GLKVector2Make(0, 0), color4));
-			CCRenderBufferSetVertex(buffer, 1, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y + radius), GLKVector2Make(0, 1), color4));
-			CCRenderBufferSetVertex(buffer, 2, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y + radius), GLKVector2Make(1, 1), color4));
-			CCRenderBufferSetVertex(buffer, 3, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y - radius), GLKVector2Make(1, 0), color4));
-			CCRenderBufferSetTriangle(buffer, 0, 0, 1, 2);
-			CCRenderBufferSetTriangle(buffer, 1, 0, 2, 3);
+			{
+				CCRenderBuffer buffer = [rtRenderer enqueueTriangles:2 andVertexes:4 withState:_lightRenderState globalSortOrder:0];
+				CCRenderBufferSetVertex(buffer, 0, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y - radius), GLKVector2Make(0, 0), color4));
+				CCRenderBufferSetVertex(buffer, 1, LightVertex(projection, GLKVector2Make(pos.x - radius, pos.y + radius), GLKVector2Make(0, 1), color4));
+				CCRenderBufferSetVertex(buffer, 2, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y + radius), GLKVector2Make(1, 1), color4));
+				CCRenderBufferSetVertex(buffer, 3, LightVertex(projection, GLKVector2Make(pos.x + radius, pos.y - radius), GLKVector2Make(1, 0), color4));
+				CCRenderBufferSetTriangle(buffer, 0, 0, 1, 2);
+				CCRenderBufferSetTriangle(buffer, 1, 0, 2, 3);
+			}
 		}
 	[_lightMapBuffer end];
 	
